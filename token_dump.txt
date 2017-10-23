@@ -1,0 +1,98 @@
+!
+version 12.4
+!
+hostname B
+!
+access-list 1 deny 12.0.0.0 0.255.255.255
+access-list 1 permit any
+!
+interface GigabitEthernet0/1
+    description INFRA:C:Gi0/1
+    ip address 1.0.1.1 255.255.0.0
+    ip ospf cost 1
+    ip access-group 1 in
+!
+interface GigabitEthernet0/2
+    description INFRA:D:Gi0/1
+    ip address 3.0.1.2 255.255.0.0
+    ip ospf cost 1
+    ip access-group 1 in
+!
+interface GigabitEthernet0/3
+    ip address 11.0.1.3 255.0.0.0
+!
+router ospf 1
+    redistribute connected
+    network 3.0.0.0 0.0.255.255 area 0
+    network 1.0.0.0 0.0.255.255 area 0
+!
+end
+!
+version 12.4
+!
+hostname C
+!
+access-list 1 deny 12.0.0.0 0.255.255.255
+access-list 1 permit any
+!
+interface GigabitEthernet0/1
+    description INFRA:B:Gi0/1
+    ip address 1.0.2.1 255.255.0.0
+    ip ospf cost 1
+    ip access-group 1 in
+!
+interface GigabitEthernet0/2
+    description INFRA:D:Gi0/2
+    ip address 2.0.2.2 255.255.0.0
+    ip ospf cost 3
+!
+interface GigabitEthernet0/3
+    ip address 13.0.2.3 255.0.0.0
+!
+router ospf 1
+    redistribute connected
+    network 2.0.0.0 0.0.255.255 area 0
+    network 1.0.0.0 0.0.255.255 area 0
+!
+end
+!
+version 12.4
+!
+hostname D
+!
+interface GigabitEthernet0/1
+    description INFRA:B:Gi0/1
+    ip address 3.0.3.1 255.255.0.0
+    ip ospf cost 1
+!
+interface GigabitEthernet0/2
+    description INFRA:C:Gi0/2
+    ip address 2.0.3.2 255.255.0.0
+    ip ospf cost 3
+!
+interface GigabitEthernet0/3
+    ip address 12.0.3.3 255.0.0.0
+!
+interface GigabitEthernet0/4
+    description INFRA:E:Gi0/1
+    ip address 4.0.3.4 255.255.0.0
+!
+router ospf 1
+    redistribute connected
+    network 2.0.0.0 0.0.255.255 area 0
+    network 3.0.0.0 0.0.255.255 area 0
+!
+end
+!
+version 12.4
+!
+hostname E
+!
+interface GigabitEthernet0/1
+    description INFRA:D:Gi0/4
+    ip address 4.0.4.1 255.255.0.0
+!
+router ospf 1
+    redistribute connected
+!
+end
