@@ -9,8 +9,13 @@ from nltk.collocations import BigramCollocationFinder, TrigramCollocationFinder
 from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
 
 def train_ngram(train_set):
-	# train_file = open(filename).read().split()
-	train_text = [token for token in train_set if "!" not in token]
+	
+	# train_text = [token for token in train_set if "!" not in token]
+	train_text = []
+	for line in train_set.splitlines(True):
+		if "!" not in line:
+			for word in line.split(" "):
+				train_text.append(word)
 
 	#Getting bigrams
 	bi_finder = BigramCollocationFinder.from_words(train_text)
@@ -37,13 +42,17 @@ def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
 	dirlist = os.listdir(dirname)
 	train_list = []
+	config_list = []
 	for _dir in dirlist:
 		if re.match(r'^fat|^ext.*|^repair_tests|.*snapshots$|^dep',_dir):
 			continue
-		token_file = dirname+"/"+_dir+"/token_dump.txt"
 
-		train_text = open(token_file).read().split()
+		token_file = dirname+"/"+_dir+"/token_dump.txt"
+		config_list.append(_dir)
+
+		train_text = open(token_file).read()
 		train_list.append(train_text)
+	print config_list
 	return train_list
 
 
@@ -51,10 +60,11 @@ def validate():
 	dirname = "~/arc/configs/examples"
 	train_list = getTokens(dirname)
 	split_set = LeaveOneOut().split(train_list)
-	# total_runs = len(split_set)
+	total_runs = 0
+	total_score = 0
 	for train, test in split_set:
 		print("Train: %s, Test: %s" % (train, test))
-		train_set = []
+		train_set = ""
 		for _idx in train:
 			train_set += train_list[_idx]
 		model = train_ngram(train_set)
@@ -63,16 +73,35 @@ def validate():
 		test_set = train_list[test[0]]
 		run_score = score(model,test_set)
 		print "Score: " + str(run_score)
+		total_score += run_score
+		total_runs += 1
+		
+	print "Avg: " + str(total_score/total_runs)
 
 def score(model, test_set):
-	test_text = [token for token in test_set if "!" not in token]
+	test_set = test_set.splitlines(True)
+	test_text = [] #[token for token in test_set if "!" not in token]
+	for line in test_set:
+		if "!" not in line:
+			for word in line.split(" "):
+				test_text.append(word)
+
 	bigram_list = list(bigrams(test_text))
 
-	total_bigrams = len(bigram_list)
+	total_bigrams = 0 #len(bigram_list)
 	correct_predicitons = 0
 
 	for (word, correct) in bigram_list:
+
+		if re.match(r'.*\n.*', word): #Dont predict for end of line
+			continue
+
+		total_bigrams += 1
+		word = word.strip()
+		correct = correct.strip()
+
 		if word not in model:
+			# print (word,correct)
 			continue
 		prediction = model[word]
 		sorted(prediction, key=lambda item: item[1],reverse=True)
@@ -83,7 +112,9 @@ def score(model, test_set):
 		# print filtered
 		if len(filtered) > 0:
 			correct_predicitons += 1
-
+		# else:
+			# print word,correct
+			
 	return float(correct_predicitons)/total_bigrams
 
 def create_mapping(model):
@@ -93,10 +124,17 @@ def create_mapping(model):
 		w1 = _bigram[0][0]
 		w2 = _bigram[0][1]
 		score = _bigram[1]
+
+		#Not predicting after line ends
+		if re.match(r'.*\n.*', w1):
+			continue
+
 		if w1 not in assoc_map:
 			assoc_map[w1] = []
 
+		w2 = w2.strip()
 		assoc_map[w1].append((w2,score))
+
 	return assoc_map
 
 start_time = time()
