@@ -10,12 +10,12 @@ from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
 
 def train_ngram(train_set):
 	
-	# train_text = [token for token in train_set if "!" not in token]
-	train_text = []
-	for line in train_set.splitlines(True):
-		if "!" not in line:
-			for word in line.split(" "):
-				train_text.append(word)
+	train_text = train_set
+	# train_text = []
+	# for line in train_set.splitlines(True):
+	# 	if "!" not in line:
+	# 		for word in line.split(" "):
+	# 			train_text.append(word)
 
 	#Getting bigrams
 	bi_finder = BigramCollocationFinder.from_words(train_text)
@@ -50,7 +50,8 @@ def getTokens(dirname):
 		token_file = dirname+"/"+_dir+"/token_dump.txt"
 		config_list.append(_dir)
 
-		train_text = open(token_file).read()
+		raw_text = open(token_file).read()
+		train_text = preprocess_data(raw_text)
 		train_list.append(train_text)
 	print config_list
 	return train_list
@@ -62,11 +63,13 @@ def validate():
 	split_set = LeaveOneOut().split(train_list)
 	total_runs = 0
 	total_score = 0
+
+	#Cross validating
 	for train, test in split_set:
 		print("Train: %s, Test: %s" % (train, test))
-		train_set = ""
+		train_set = []
 		for _idx in train:
-			train_set += train_list[_idx]
+			train_set += train_list[_idx] #Concatenate all training data
 		model = train_ngram(train_set)
 		model = create_mapping(model)
 		#Get accuracy
@@ -78,15 +81,9 @@ def validate():
 		
 	print "Avg: " + str(total_score/total_runs)
 
-def score(model, test_set):
-	test_set = test_set.splitlines(True)
-	test_text = [] #[token for token in test_set if "!" not in token]
-	for line in test_set:
-		if "!" not in line:
-			for word in line.split(" "):
-				test_text.append(word)
+def score(model, test_data):
 
-	bigram_list = list(bigrams(test_text))
+	bigram_list = list(bigrams(test_data))
 
 	total_bigrams = 0 #len(bigram_list)
 	correct_predicitons = 0
@@ -112,9 +109,7 @@ def score(model, test_set):
 		# print filtered
 		if len(filtered) > 0:
 			correct_predicitons += 1
-		# else:
-			# print word,correct
-			
+	
 	return float(correct_predicitons)/total_bigrams
 
 def create_mapping(model):
@@ -136,6 +131,14 @@ def create_mapping(model):
 		assoc_map[w1].append((w2,score))
 
 	return assoc_map
+
+def preprocess_data(text):
+	train_text = []
+	for line in text.splitlines(True):
+		if "!" not in line:
+			for word in line.split(" "):
+				train_text.append(word)
+	return train_text
 
 start_time = time()
 validate()
