@@ -78,14 +78,18 @@ def validate():
 		print "Score: " + str(run_score)
 		total_score += run_score
 		total_runs += 1
-		
 	print "Avg: " + str(total_score/total_runs)
 
 def score(model, test_data):
+	# for (key,val) in model.items(): print (key,val) 
+
+	_debug = True
 
 	bigram_list = list(bigrams(test_data))
 
 	total_bigrams = 0 #len(bigram_list)
+	incorrect = []
+	not_found = []
 	correct_predicitons = 0
 
 	for (word, correct) in bigram_list:
@@ -98,18 +102,25 @@ def score(model, test_data):
 		correct = correct.strip()
 
 		if word not in model:
-			# print (word,correct)
+			not_found.append((word,correct))
 			continue
 		prediction = model[word]
 		sorted(prediction, key=lambda item: item[1],reverse=True)
-		# print word + "-->" + str(prediction)
 
 		#if correct prediction in top 3
 		filtered = list(filter(lambda x: (x[0]==correct), prediction[:3]))
 		# print filtered
 		if len(filtered) > 0:
 			correct_predicitons += 1
-	
+		else:
+			incorrect.append((word,correct))
+		
+	if _debug:
+		print "\tCorrect prerdiction not found"
+		for (word,correct) in incorrect: print "\t\t", (word,correct)
+		print "\tWords not found"
+		for (word,correct) in not_found: print "\t\t", word
+
 	return float(correct_predicitons)/total_bigrams
 
 def create_mapping(model):
@@ -134,10 +145,14 @@ def create_mapping(model):
 
 def preprocess_data(text):
 	train_text = []
+	text = re.sub(r'((255|0)\.?){4}',"SUBNET",text)
+	text = re.sub(r'(\d{1,3}\.?){4}',"IPADDRESS",text)
+	# print text
 	for line in text.splitlines(True):
 		if "!" not in line:
 			for word in line.split(" "):
-				train_text.append(word)
+				if len(word) > 0:
+					train_text.append(word)
 	return train_text
 
 start_time = time()
