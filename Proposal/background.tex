@@ -1,0 +1,24 @@
+\section{Background}
+
+\subsection{Network Configurations} 
+
+Router configuration files are often written in a vendor specific language, the popular ones being provided by Cisco and Junyper systems. These files often exist as plain text files on the routers and can be thought of as a static rule base for the device. A configuration file is composed of different sections which are called stanzas. Stanza types could be router, access-control list, interface etc. Each stanza describes the router's particular role in relation to the stanza type. Network operators will configure these stanzas to define how the routers interact with each other. For example, operators might specify which devices the given router is connected to and what protocol it should follow when communicating with such devices. Additionally, they could enforce security measures by using access-control lists to block certain hosts from entering or leaving a network. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=5in]{configexample.png}
+	\caption{Here is what a set of simplified configurations for a small network employing a single OSPF protocol}
+\end{figure}
+
+\subsection{Network Management Tools}
+
+Network management tools are built to assist network operators as they design and manage router configurations. Most of these tools offer some form a Command Line Interface, where the operators can use vendor  specific languages to update router configurations. Often, these CLIs will offer rudimentary tab completion, where they will alphabetically suggest all the options available for a token from the invocation point. These are sometimes unhelpful as the user then has to search for the desired completion.\\ 
+
+A recurring drawback of these tools is that they focus mostly on updating existing configurations. They do not provide any additional functionality for writing new configurations other than utilizing templates. Even in the latter case, the operators will have to fill in the templates appropriately or write their own custom templates for specialized router roles. Our work acknowledges that in practice no network’s functionality can be captured by templates alone. Thus, there is a need for an engine that can distinguish itself from these existing tools by being agnostic towards where it is used in the network development life cycle. We expect our engine to perform consistently whether invoked while writing new configurations or updating existing ones.
+
+\subsection{Code Completion}
+
+Traditional completion techniques, such as those seen in IDEs, generate context aware models of program histories. In doing so, code completion engines often have to be aware of the grammar of the programming language and make suggestions based off that. These solutions offer fairly respectable accuracies but come with their idiosyncrasies. Popular IDEs, such as IntelliJ or Eclipse, use relatively simple type based inferential techniques to suggest all methods available for an object, usually sorted in alphabetical order. Researchers, on the other hand, have proposed more ‘intelligent’ forms of code completion techniques in the past. Early work started by adopting rule based approaches where a database of predefined rules could be continuously queried to carry out possible completion tasks~\cite{kaiser}.  Other researchers explored how to make use of program history to offer suggestions based on what users had done in the past~\cite{robbes}.\\  
+
+Eventually people started applying machine learning techniques, such as KNNs, to extract patterns from existing code bases and building models that could be used to rank possible predictions for a given input vector. All these techniques, however, require some form of context extraction, so that information about the codebase can be stored e.g. in form of a feature vector.They heavily leverage the existing code structure and require knowledge about the grammar of the programming language. A similar methodology for network configurations would require more input from our end to ensure that the context of the tokens was properly understood. However, NLP techniques can generate predictions based on token usage and do not need to be explicitly aware of the grammar. This allows us to use these techniques independent of vendor specific configuration languages. 
+  

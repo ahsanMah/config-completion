@@ -83,7 +83,7 @@ def validate():
 def score(model, test_data):
 	# for (key,val) in model.items(): print (key,val) 
 
-	_debug = True
+	_debug = False
 
 	bigram_list = list(bigrams(test_data))
 

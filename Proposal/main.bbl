@@ -1,0 +1,49 @@
+\begin{thebibliography}{1}
+
+\bibitem{complexity}
+T.~Benson, A.~Akella, and D.~Maltz.
+\newblock Unraveling the complexity of network management.
+\newblock pages 335--348, 2009.
+
+\bibitem{naturalness}
+A.~Hindle, E.~T. Barr, M.~Gabel, Z.~Su, and P.~T. Devanbu.
+\newblock On the naturalness of software.
+\newblock {\em Commun. {ACM}}, 59(5):122--131, 2016.
+
+\bibitem{kaiser}
+G.~E. Kaiser and P.~H. Feiler.
+\newblock An architecture for intelligent assistance in software development.
+\newblock In {\em Proceedings of the 9th International Conference on Software
+  Engineering}, ICSE '87, pages 180--188, Los Alamitos, CA, USA, 1987. IEEE
+  Computer Society Press.
+
+\bibitem{raychev}
+V.~Raychev, M.~Vechev, and E.~Yahav.
+\newblock Code completion with statistical language models.
+\newblock {\em SIGPLAN Not.}, 49(6):419--428, June 2014.
+
+\bibitem{robbes}
+R.~Robbes and M.~Lanza.
+\newblock How program history can improve code completion.
+\newblock In {\em Proceedings of the 2008 23rd IEEE/ACM International
+  Conference on Automated Software Engineering}, ASE '08, pages 317--326,
+  Washington, DC, USA, 2008. IEEE Computer Society.
+
+\bibitem{azure}
+Y.~Sverdlik.
+\newblock Microsoft: misconfigured network device led to azure outage.
+\newblock \url{https://goo.gl/Y5sDov}.
+
+\bibitem{googlebgp}
+Web.
+\newblock Google made a tiny error and it broke half the internet in japan.
+\newblock
+  \url{https://thenextweb.com/google/2017/08/28/google-japan-internet-blackout/}.
+
+\bibitem{errors}
+Z.~Yin, X.~Ma, J.~Zheng, Y.~Zhou, L.~N. Bairavasundaram, and S.~Pasupathy.
+\newblock An empirical study on configuration errors in commercial and open
+  source systems.
+\newblock pages 159--172, 2011.
+
+\end{thebibliography}
