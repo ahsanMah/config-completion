@@ -7,8 +7,8 @@ To confirm our hypothesis, we took configurations from a few sample networks and
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=5in]{chart.png}
-	\caption{The plot shows how many tokens and statements a router configuration holds in common with the rest of the network}
+	\includegraphics[width=\textwidth]{chart.png}
+	\caption{The plot shows how many tokens and statements a router configuration holds in common with the rest of the network. The data was taken from a large research university.}
 \end{figure}
 
 Our results show that most files could be rebuilt from existing statements in routing configurations due to the amount of tokens they share. Given our results, and the observations made by~\cite{complexity} about how networks are configured, we can confidently hypothesize that most token suggestions can be generated from analyzing other existing configurations. This effectively makes all router configuration histories a part of the search space for our NLP model. 
@@ -21,7 +21,7 @@ To test the accuracy of our model, we perform Leave One Out (LOO) Cross Validati
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=4.5in]{model_analysis.png}
-	\caption{The bar charts show the accuracy of the model for each set or router configurations used as the validation set}
+	\includegraphics[width=\textwidth]{model_analysis.png}
+	\caption{The bar charts show the accuracy of the model for each set or router configurations used as the validation set.}
 \end{figure}
 Since we had 10 sets of configurations at our disposable, we performed 10 LOOs and took the average of the accuracies for a final accuracy measure. Our results are promising and we see accuracies of up to 93\%, and an average of 81\%.
