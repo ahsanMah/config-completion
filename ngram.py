@@ -2,7 +2,7 @@
 
 import os as os
 from time import time
-import re, numpy
+import re, numpy, sys
 from sklearn.model_selection import LeaveOneOut
 from nltk.util import bigrams, trigrams
 from nltk.collocations import BigramCollocationFinder, TrigramCollocationFinder
@@ -44,10 +44,14 @@ def getTokens(dirname):
 	train_list = []
 	config_list = []
 	for _dir in dirlist:
+
+		# Problematic directories
+		# Most are not realistic examples of configurations 
+		# and therefore confound the model
 		if re.match(r'^fat|^ext.*|^repair_tests|.*snapshots$|^dep',_dir):
 			continue
 
-		token_file = dirname+"/"+_dir+"/token_dump.txt"
+		token_file = dirname+"/"+_dir+"/tokendump.txt"
 		config_list.append(_dir)
 
 		raw_text = open(token_file).read()
@@ -58,7 +62,7 @@ def getTokens(dirname):
 
 
 def validate():
-	dirname = "~/arc/configs/examples"
+	dirname = sys.argv[1]
 	train_list = getTokens(dirname)
 	split_set = LeaveOneOut().split(train_list)
 	total_runs = 0
