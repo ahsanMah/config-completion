@@ -11,11 +11,6 @@ from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
 def train_ngram(train_set):
 	
 	train_text = train_set
-	# train_text = []
-	# for line in train_set.splitlines(True):
-	# 	if "!" not in line:
-	# 		for word in line.split(" "):
-	# 			train_text.append(word)
 
 	#Getting bigrams
 	bi_finder = BigramCollocationFinder.from_words(train_text)
@@ -51,8 +46,8 @@ def getTokens(dirname):
 		if re.match(r'^fat|^ext.*|^repair_tests|.*snapshots$|^dep',_dir):
 			continue
 
-		token_file = dirname+"/"+_dir+"/tokendump.txt"
-		config_list.append(_dir)
+		token_file = dirname+"/"+_dir
+		config_list.append(_dir.replace(".txt",""))
 
 		raw_text = open(token_file).read()
 		train_text = preprocess_data(raw_text)
