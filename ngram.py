@@ -3,6 +3,7 @@
 import os as os
 from time import time
 import re, numpy, sys
+from multiprocessing import Pool as ThreadPool
 from sklearn.model_selection import LeaveOneOut
 from nltk.util import bigrams, trigrams
 from nltk.collocations import BigramCollocationFinder, TrigramCollocationFinder
@@ -55,34 +56,48 @@ def getTokens(dirname):
 	print config_list
 	return train_list
 
+	#Cross validating
+def crossvalidate(train_test):
+	train,test = train_test
+	train_list = train_data
+	#Concatenate all training data
+	train_set = []
+	for _idx in train:
+		train_set += train_list[_idx] 
+	model = train_ngram(train_set)
+	model = create_mapping(model)
+	
+	#Get accuracy
+	test_set = train_list[test[0]]
+	run_score = score(model,test_set)
+	
+	# print("Train: %s, Test: %s" % (train, test))
+	# print "Score: " + str(run_score)
+	return run_score
+
 
 def validate():
-	dirname = sys.argv[1]
-	train_list = getTokens(dirname)
-	split_set = LeaveOneOut().split(train_list)
-	total_runs = 0
-	total_score = 0
+	
+	split_set = LeaveOneOut().split(train_data)
+	run_score = []
 
-	#Cross validating
-	for train, test in split_set:
-		print("Train: %s, Test: %s" % (train, test))
-		train_set = []
-		for _idx in train:
-			train_set += train_list[_idx] #Concatenate all training data
-		model = train_ngram(train_set)
-		model = create_mapping(model)
-		#Get accuracy
-		test_set = train_list[test[0]]
-		run_score = score(model,test_set)
-		print "Score: " + str(run_score)
-		total_score += run_score
-		total_runs += 1
+	#Making thread workers
+	pool = ThreadPool(8)
+	run_score = pool.map(crossvalidate, split_set)
+
+	#Closing threads
+	pool.close()
+	pool.join()
+
+	# for train, test in split_set:
+	# 	run_score.append(crossvalidate(train_data,train,test))
+
+	total_score = sum(run_score)
+	total_runs = len(run_score)
 	print "Avg: " + str(total_score/total_runs)
 
 def score(model, test_data):
 	# for (key,val) in model.items(): print (key,val) 
-
-	_debug = False
 
 	bigram_list = list(bigrams(test_data))
 
@@ -108,15 +123,15 @@ def score(model, test_data):
 
 		#if correct prediction in top 3
 		filtered = list(filter(lambda x: (x[0]==correct), prediction[:3]))
-		# print filtered
 		if len(filtered) > 0:
 			correct_predicitons += 1
 		else:
-			incorrect.append((word,correct))
+			# print filtered
+			incorrect.append((word,correct, prediction[:5]))
 		
 	if _debug:
-		print "\tCorrect prerdiction not found"
-		for (word,correct) in incorrect: print "\t\t", (word,correct)
+		print "\tCorrect prediction not found"
+		for (word,correct, prediction) in incorrect: print "\t\t", (word,correct), "->", prediction
 		print "\tWords not found"
 		for (word,correct) in not_found: print "\t\t", word
 
@@ -154,7 +169,15 @@ def preprocess_data(text):
 					train_text.append(word)
 	return train_text
 
+
+############ Start Running ################
 start_time = time()
+
+dirname = sys.argv[1]
+_debug = len(sys.argv) > 2 and sys.argv[2] == "-d"
+
+train_data = getTokens(dirname)
 validate()
+
 print "Time elapsed: {:.3f}".format((time()-start_time)) 
 # train_ngram("token_dump.txt")
