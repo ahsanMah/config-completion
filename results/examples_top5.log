@@ -1,0 +1,21 @@
+['waypoints', 'bgpospfchains', 'bgp-redistribute-ospf', 'bgp-length', 'routemap', 'single-ospf', 'repair_local-vs-global', 'vlan', 'bgp-redistribute-ospf-with-static']
+Train: [1 2 3 4 5 6 7 8], Test: [0]
+Score: 0.939655172414
+Train: [0 2 3 4 5 6 7 8], Test: [1]
+Score: 0.821428571429
+Train: [0 1 3 4 5 6 7 8], Test: [2]
+Score: 0.981132075472
+Train: [0 1 2 4 5 6 7 8], Test: [3]
+Score: 0.874418604651
+Train: [0 1 2 3 5 6 7 8], Test: [4]
+Score: 0.787878787879
+Train: [0 1 2 3 4 6 7 8], Test: [5]
+Score: 0.832116788321
+Train: [0 1 2 3 4 5 7 8], Test: [6]
+Score: 0.857819905213
+Train: [0 1 2 3 4 5 6 8], Test: [7]
+Score: 0.78125
+Train: [0 1 2 3 4 5 6 7], Test: [8]
+Score: 0.946808510638
+Avg: 0.86916760178
+Time elapsed: 0.337

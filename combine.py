@@ -14,7 +14,7 @@ def dumptext(dirname):
 		if re.match(r'.*\.txt$', file):
 			continue
 		filename = currdir + "/" + file
-		print filename
+		# print filename
 		with open(filename, 'r') as f:
 			raw_text += f.read()
 
