@@ -60,10 +60,12 @@ def getTokens(dirname):
 def crossvalidate(train_test):
 	train,test = train_test
 	train_list = train_data
+	
 	#Concatenate all training data
 	train_set = []
 	for _idx in train:
-		train_set += train_list[_idx] 
+		train_set += train_list[_idx]
+
 	model = train_ngram(train_set)
 	model = create_mapping(model)
 	
@@ -71,8 +73,10 @@ def crossvalidate(train_test):
 	test_set = train_list[test[0]]
 	run_score = score(model,test_set)
 	
-	# print("Train: %s, Test: %s" % (train, test))
-	# print "Score: " + str(run_score)
+	if _debug:
+		print("Train: %s, Test: %s" % (train, test))
+		print "Score: " + str(run_score)
+
 	return run_score
 
 
@@ -81,16 +85,17 @@ def validate():
 	split_set = LeaveOneOut().split(train_data)
 	run_score = []
 
-	#Making thread workers
-	pool = ThreadPool(8)
-	run_score = pool.map(crossvalidate, split_set)
+	if not _debug:
+		#Making thread wordkers
+		pool = ThreadPool(8)
+		run_score = pool.map(crossvalidate, split_set)
 
-	#Closing threads
-	pool.close()
-	pool.join()
-
-	# for train, test in split_set:
-	# 	run_score.append(crossvalidate(train_data,train,test))
+		#Closing threads
+		pool.close()
+		pool.join()
+	else:
+		for train_test in split_set:
+			run_score.append(crossvalidate(train_test))
 
 	total_score = sum(run_score)
 	total_runs = len(run_score)
@@ -122,16 +127,16 @@ def score(model, test_data):
 		sorted(prediction, key=lambda item: item[1],reverse=True)
 
 		#if correct prediction in top 3
-		filtered = list(filter(lambda x: (x[0]==correct), prediction[:3]))
+		filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
 		if len(filtered) > 0:
 			correct_predicitons += 1
 		else:
 			# print filtered
 			incorrect.append((word,correct, prediction[:5]))
 		
-	if _debug:
+	if _debugLong:
 		print "\tCorrect prediction not found"
-		for (word,correct, prediction) in incorrect: print "\t\t", (word,correct), "->", prediction
+		for (word,correct, prediction) in incorrect: print "\t\t", (word,correct) , "->", prediction
 		print "\tWords not found"
 		for (word,correct) in not_found: print "\t\t", word
 
@@ -157,11 +162,32 @@ def create_mapping(model):
 
 	return assoc_map
 
+
+''' Callback function for returning the appropriate substitution 
+	for any regex that is matched while preprocesisng data
+'''
+def get_regex_match(matchObj):
+	phrase = matchObj.group(0)
+	replacement = "<REMOVED>"
+
+	for regex_num, regex in enumerate(COMPILED_KEYS):
+		if regex.match(phrase):
+			replacement = REPLACEMENTS[REGEX_KEYS[regex_num]]
+			break
+	
+	if callable(replacement):
+		replacement = replacement(matchObj.group(1))
+
+	return replacement
+
+
 def preprocess_data(text):
 	train_text = []
-	text = re.sub(r'((255|0)\.?){4}',"SUBNET",text)
-	text = re.sub(r'(\d{1,3}\.?){4}',"IPADDRESS",text)
+
+	matching_regex = re.compile(r"\b%s\b" % r"\b|\b".join(REGEX_KEYS))
+	text = matching_regex.sub(get_regex_match, text)
 	# print text
+
 	for line in text.splitlines(True):
 		if "!" not in line:
 			for word in line.split(" "):
@@ -173,8 +199,20 @@ def preprocess_data(text):
 ############ Start Running ################
 start_time = time()
 
+NUM_PREDICTIONS = 5
 dirname = sys.argv[1]
-_debug = len(sys.argv) > 2 and sys.argv[2] == "-d"
+
+_debug = len(sys.argv) > 2 and re.match(r'-d.?', sys.argv[2])
+_debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
+
+
+REPLACEMENTS = {'((255|0)\.?){4}' : "SUBNET",
+				'(\d{1,3}\.?){4}' : "IPADDRESS",
+				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID "),
+				'description (\\b.*\\b)' : "description DESCRIPTION"
+				}
+REGEX_KEYS = REPLACEMENTS.keys()
+COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]
 
 train_data = getTokens(dirname)
 validate()
