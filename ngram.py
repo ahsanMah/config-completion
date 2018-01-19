@@ -116,8 +116,8 @@ def score(model, ngram_list):
 	
 
 	total_bigrams = 0 #len(ngram_list)
-	incorrect = []
-	not_found = []
+	incorrect = set()
+	not_found = set()
 	correct_predicitons = 0
 
 	for ngram in ngram_list:
@@ -134,7 +134,7 @@ def score(model, ngram_list):
 
 		total_bigrams += 1
 		if prefix not in model:
-			not_found.append((prefix,correct))
+			not_found.add((prefix,correct))
 			continue
 
 		prediction = model[prefix]
@@ -147,7 +147,7 @@ def score(model, ngram_list):
 			correct_predicitons += 1
 		else:
 			# print filtered
-			incorrect.append((prefix,correct, map(lambda (_word,_prob): _word, prediction[:5])))
+			incorrect.add((prefix,correct, tuple(map(lambda (_word,_prob): _word, prediction[:5]))))
 		
 	if _debugLong:
 		print "\t Unable to correctly predict: %d" % len(incorrect)
@@ -198,17 +198,17 @@ def get_regex_match(matchObj):
 
 
 def preprocess_data(text):
-	train_text = []
 
+	# Combines all phrases to be replaced into one giant regex
 	matching_regex = re.compile(r"\b%s\b" % r"\b|\b".join(REGEX_KEYS))
-	text = matching_regex.sub(get_regex_match, text)
-	# print text
 
-	for line in text.splitlines(True):
-		if "!" not in line:
-			for word in line.split(" "):
-				if len(word) > 0:
-					train_text.append(word)
+	# Substitutes each matching regex with the corresponding
+	# replacement using the callback function
+	text = matching_regex.sub(get_regex_match, text)
+
+	# NLTK expects lists of words to form ngrams
+	train_text = list(filter(lambda word: len(word)>0, text.split(" ")))
+
 	return train_text
 
 
@@ -228,7 +228,8 @@ _debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
 REPLACEMENTS = {'((255|0)\.?){4}' : "SUBNET",
 				'(\d{1,3}\.?){4}' : "IPADDRESS",
 				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID\n"),
-				'description (\\b.*\\b)' : "description DESCRIPTION"
+				'description (\\b.*\\b)' : "description DESCRIPTION",
+				'^\s*(!.*)$' :  ""
 				}
 REGEX_KEYS = REPLACEMENTS.keys()
 COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]
@@ -238,4 +239,3 @@ TRAIN_DATA = getTokens(dirname)
 validate()
 
 print "Time elapsed: {:.3f}".format((time()-start_time)) 
-# train_ngram("token_dump.txt")
