@@ -2,7 +2,7 @@
 
 import os as os
 from time import time
-import re, numpy, sys
+import re, numpy, sys, random
 from multiprocessing import Pool as ThreadPool
 from sklearn.model_selection import LeaveOneOut
 from nltk.util import bigrams, trigrams
@@ -32,17 +32,21 @@ def train_ngram(train_set):
 	# for result in bigram_scores: print result
 	# for result in trigram_scores: print result
 
-	return bigram_scores
+	return bigram_scores, trigram_scores
 
 def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
-	dirlist = os.listdir(dirname)
+	dirlist = os.listdir(dirname)[:SAMPLE_NUM]
+	
+	# if len(dirlist) > SAPMLE_NUM:
+	# 	dirlist = random.sample(dirlist, SAPMLE_NUM)
+
 	train_list = []
 	config_list = []
 	for _dir in dirlist:
 
 		# Problematic directories
-		# Most are not realistic examples of configurations 
+		# Most are unrealistic examples of configurations 
 		# and therefore confound the model
 		if re.match(r'^fat|^ext.*|^repair_tests|.*snapshots$|^dep',_dir):
 			continue
@@ -59,22 +63,28 @@ def getTokens(dirname):
 	#Cross validating
 def crossvalidate(train_test):
 	train,test = train_test
-	train_list = train_data
+	train_list = TRAIN_DATA
 	
+	if _debug:
+		print("Train: %s, Test: %s" % (train, test))
+
 	#Concatenate all training data
 	train_set = []
 	for _idx in train:
 		train_set += train_list[_idx]
 
-	model = train_ngram(train_set)
-	model = create_mapping(model)
+	bigram_model, trigram_model = train_ngram(train_set)
+	# model = create_mapping(bigram_model, 2)
+	model = bigram_model if NGRAM_SIZE==2 else trigram_model
+	model = create_mapping(model,NGRAM_SIZE)
+	
+	test_set = train_list[test[0]]
+	test_ngram_list = list(bigrams(test_set) if NGRAM_SIZE==2 else trigrams(test_set))
 	
 	#Get accuracy
-	test_set = train_list[test[0]]
-	run_score = score(model,test_set)
+	run_score = score(model,test_ngram_list)
 	
 	if _debug:
-		print("Train: %s, Test: %s" % (train, test))
 		print "Score: " + str(run_score)
 
 	return run_score
@@ -82,7 +92,7 @@ def crossvalidate(train_test):
 
 def validate():
 	
-	split_set = LeaveOneOut().split(train_data)
+	split_set = LeaveOneOut().split(TRAIN_DATA)
 	run_score = []
 
 	if not _debug:
@@ -101,64 +111,70 @@ def validate():
 	total_runs = len(run_score)
 	print "Avg: " + str(total_score/total_runs)
 
-def score(model, test_data):
+def score(model, ngram_list):
 	# for (key,val) in model.items(): print (key,val) 
+	
 
-	bigram_list = list(bigrams(test_data))
-
-	total_bigrams = 0 #len(bigram_list)
+	total_bigrams = 0 #len(ngram_list)
 	incorrect = []
 	not_found = []
 	correct_predicitons = 0
 
-	for (word, correct) in bigram_list:
+	for ngram in ngram_list:
 
-		if re.match(r'.*\n.*', word): #Dont predict for end of line
+		if re.match(r'.*\n.+', "".join(ngram)): #Dont predict for end of line
+			# print prefix
 			continue
+
+		ngram = tuple(map(lambda x: x.strip(), ngram))
+
+		prefix = ngram[:NGRAM_SIZE-1]
+		correct = ngram[-1]
+
 
 		total_bigrams += 1
-		word = word.strip()
-		correct = correct.strip()
-
-		if word not in model:
-			not_found.append((word,correct))
+		if prefix not in model:
+			not_found.append((prefix,correct))
 			continue
-		prediction = model[word]
+
+		prediction = model[prefix]
 		sorted(prediction, key=lambda item: item[1],reverse=True)
 
-		#if correct prediction in top 3
+		# Filter out predictions that match the correct answer
 		filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
+		
 		if len(filtered) > 0:
 			correct_predicitons += 1
 		else:
 			# print filtered
-			incorrect.append((word,correct, prediction[:5]))
+			incorrect.append((prefix,correct, map(lambda (_word,_prob): _word, prediction[:5])))
 		
 	if _debugLong:
-		print "\tCorrect prediction not found"
-		for (word,correct, prediction) in incorrect: print "\t\t", (word,correct) , "->", prediction
-		print "\tWords not found"
+		print "\t Unable to correctly predict: %d" % len(incorrect)
+		for (word,correct, prediction) in incorrect: 
+			print "\t\t (%s,%s) -> %s" % (word,correct, prediction) #+ prediction
+		
+		print "\t Phrases not present in model: %d" % len(not_found)
 		for (word,correct) in not_found: print "\t\t", word
 
 	return float(correct_predicitons)/total_bigrams
 
-def create_mapping(model):
+def create_mapping(model, size):
 	assoc_map = {}
 
-	for _bigram in model:
-		w1 = _bigram[0][0]
-		w2 = _bigram[0][1]
-		score = _bigram[1]
+	for (ngram, score) in model:
+		prefix = ngram[:size-1]
+		prediction = ngram[-1]
 
 		#Not predicting after line ends
-		if re.match(r'.*\n.*', w1):
+		if re.match(r'.*\n.*', "".join(prefix)):
 			continue
 
-		if w1 not in assoc_map:
-			assoc_map[w1] = []
+		if prefix not in assoc_map:
+			assoc_map[prefix] = []
 
-		w2 = w2.strip()
-		assoc_map[w1].append((w2,score))
+		prediction = prediction.strip()
+		assoc_map[prefix].append((prediction,score))
 
 	return assoc_map
 
@@ -199,8 +215,11 @@ def preprocess_data(text):
 ############ Start Running ################
 start_time = time()
 
-NUM_PREDICTIONS = 5
 dirname = sys.argv[1]
+
+NUM_PREDICTIONS = 3
+NGRAM_SIZE = 3
+SAMPLE_NUM = 10
 
 _debug = len(sys.argv) > 2 and re.match(r'-d.?', sys.argv[2])
 _debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
@@ -208,13 +227,14 @@ _debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
 
 REPLACEMENTS = {'((255|0)\.?){4}' : "SUBNET",
 				'(\d{1,3}\.?){4}' : "IPADDRESS",
-				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID "),
+				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID\n"),
 				'description (\\b.*\\b)' : "description DESCRIPTION"
 				}
 REGEX_KEYS = REPLACEMENTS.keys()
 COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]
 
-train_data = getTokens(dirname)
+# Makes things easier for using pool map later on
+TRAIN_DATA = getTokens(dirname)
 validate()
 
 print "Time elapsed: {:.3f}".format((time()-start_time)) 
