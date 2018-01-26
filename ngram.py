@@ -36,10 +36,10 @@ def train_ngram(train_set):
 
 def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
-	dirlist = os.listdir(dirname)[:SAMPLE_NUM]
+	dirlist = os.listdir(dirname)#[:SAMPLE_NUM]
 	
-	# if len(dirlist) > SAPMLE_NUM:
-	# 	dirlist = random.sample(dirlist, SAPMLE_NUM)
+	if len(dirlist) > SAMPLE_NUM:
+		dirlist = random.sample(dirlist, SAMPLE_NUM)
 
 	train_list = []
 	config_list = []
@@ -56,6 +56,7 @@ def getTokens(dirname):
 
 		raw_text = open(token_file).read()
 		train_text = preprocess_data(raw_text)
+		# print train_text
 		train_list.append(train_text)
 	print config_list
 	return train_list
@@ -123,7 +124,7 @@ def score(model, ngram_list):
 	for ngram in ngram_list:
 
 		if re.match(r'.*\n.+', "".join(ngram)): #Dont predict for end of line
-			# print prefix
+			# print ngram
 			continue
 
 		ngram = tuple(map(lambda x: x.strip(), ngram))
@@ -200,14 +201,23 @@ def get_regex_match(matchObj):
 def preprocess_data(text):
 
 	# Combines all phrases to be replaced into one giant regex
+	# There's a bug in Python taht prevents the following refex from being compiled
+	# r"\b?%s\b?" % r"\b?|\b?".join(REGEX_KEYS)
+	
 	matching_regex = re.compile(r"\b%s\b" % r"\b|\b".join(REGEX_KEYS))
-
+	
 	# Substitutes each matching regex with the corresponding
 	# replacement using the callback function
 	text = matching_regex.sub(get_regex_match, text)
-
+	text = re.sub('(!.*\n)', "", text)
+	# print text
+	
 	# NLTK expects lists of words to form ngrams
-	train_text = list(filter(lambda word: len(word)>0, text.split(" ")))
+	train_text = []
+	for line in text.splitlines(True): 
+		for word in line.split(" "):
+			if len(word) > 0:		
+				train_text.append(word)
 
 	return train_text
 
@@ -215,10 +225,12 @@ def preprocess_data(text):
 ############ Start Running ################
 start_time = time()
 
+random.seed(7)
+
 dirname = sys.argv[1]
 
 NUM_PREDICTIONS = 3
-NGRAM_SIZE = 3
+NGRAM_SIZE = 2
 SAMPLE_NUM = 10
 
 _debug = len(sys.argv) > 2 and re.match(r'-d.?', sys.argv[2])
@@ -228,8 +240,7 @@ _debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
 REPLACEMENTS = {'((255|0)\.?){4}' : "SUBNET",
 				'(\d{1,3}\.?){4}' : "IPADDRESS",
 				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID\n"),
-				'description (\\b.*\\b)' : "description DESCRIPTION",
-				'^\s*(!.*)$' :  ""
+				'description (\\b.*\\b)' : "description DESCRIPTION"
 				}
 REGEX_KEYS = REPLACEMENTS.keys()
 COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]
