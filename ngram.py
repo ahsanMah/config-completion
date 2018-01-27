@@ -56,9 +56,8 @@ def getTokens(dirname):
 
 		raw_text = open(token_file).read()
 		train_text = preprocess_data(raw_text)
-		# print train_text
 		train_list.append(train_text)
-	print config_list
+	# print config_list
 	return train_list
 
 	#Cross validating
@@ -75,7 +74,6 @@ def crossvalidate(train_test):
 		train_set += train_list[_idx]
 
 	bigram_model, trigram_model = train_ngram(train_set)
-	# model = create_mapping(bigram_model, 2)
 	model = bigram_model if NGRAM_SIZE==2 else trigram_model
 	model = create_mapping(model,NGRAM_SIZE)
 	
@@ -97,7 +95,7 @@ def validate():
 	run_score = []
 
 	if not _debug:
-		#Making thread wordkers
+		#Making thread workers
 		pool = ThreadPool(8)
 		run_score = pool.map(crossvalidate, split_set)
 
@@ -110,12 +108,11 @@ def validate():
 
 	total_score = sum(run_score)
 	total_runs = len(run_score)
-	print "Avg: " + str(total_score/total_runs)
+	print "Accuracy: %.4f" % (total_score/total_runs)
 
 def score(model, ngram_list):
 	# for (key,val) in model.items(): print (key,val) 
 	
-
 	total_bigrams = 0 #len(ngram_list)
 	incorrect = set()
 	not_found = set()
@@ -123,8 +120,8 @@ def score(model, ngram_list):
 
 	for ngram in ngram_list:
 
-		if re.match(r'.*\n.+', "".join(ngram)): #Dont predict for end of line
-			# print ngram
+		# Don't predict for end of line
+		if re.match(r'.*\n.+', "".join(ngram)):
 			continue
 
 		ngram = tuple(map(lambda x: x.strip(), ngram))
@@ -180,37 +177,7 @@ def create_mapping(model, size):
 	return assoc_map
 
 
-''' Callback function for returning the appropriate substitution 
-	for any regex that is matched while preprocesisng data
-'''
-def get_regex_match(matchObj):
-	phrase = matchObj.group(0)
-	replacement = "<REMOVED>"
-
-	for regex_num, regex in enumerate(COMPILED_KEYS):
-		if regex.match(phrase):
-			replacement = REPLACEMENTS[REGEX_KEYS[regex_num]]
-			break
-	
-	if callable(replacement):
-		replacement = replacement(matchObj.group(1))
-
-	return replacement
-
-
 def preprocess_data(text):
-
-	# Combines all phrases to be replaced into one giant regex
-	# There's a bug in Python taht prevents the following refex from being compiled
-	# r"\b?%s\b?" % r"\b?|\b?".join(REGEX_KEYS)
-	
-	matching_regex = re.compile(r"\b%s\b" % r"\b|\b".join(REGEX_KEYS))
-	
-	# Substitutes each matching regex with the corresponding
-	# replacement using the callback function
-	text = matching_regex.sub(get_regex_match, text)
-	text = re.sub('(!.*\n)', "", text)
-	# print text
 	
 	# NLTK expects lists of words to form ngrams
 	train_text = []
@@ -231,19 +198,14 @@ dirname = sys.argv[1]
 
 NUM_PREDICTIONS = 3
 NGRAM_SIZE = 2
-SAMPLE_NUM = 10
+SAMPLE_NUM = 20
 
 _debug = len(sys.argv) > 2 and re.match(r'-d.?', sys.argv[2])
 _debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
 
-
-REPLACEMENTS = {'((255|0)\.?){4}' : "SUBNET",
-				'(\d{1,3}\.?){4}' : "IPADDRESS",
-				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID\n"),
-				'description (\\b.*\\b)' : "description DESCRIPTION"
-				}
-REGEX_KEYS = REPLACEMENTS.keys()
-COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]
+print "Directory: %s" % dirname
+print "Sample size: %d" % SAMPLE_NUM
+print "Ngram size: %d" % NGRAM_SIZE
 
 # Makes things easier for using pool map later on
 TRAIN_DATA = getTokens(dirname)
