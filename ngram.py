@@ -3,11 +3,44 @@
 import os as os
 from time import time
 import re, numpy, sys, random
-from multiprocessing import Pool as ThreadPool
+import multiprocessing
 from sklearn.model_selection import LeaveOneOut
 from nltk.util import bigrams, trigrams
 from nltk.collocations import BigramCollocationFinder, TrigramCollocationFinder
 from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
+
+###### Declaring constants #########
+SAMPLE_NUM = 0
+NGRAM_SIZE = 0
+NUM_PREDICTIONS = 0
+TRAIN_DATA = []
+_debug = False
+_debugLong = False
+
+def run(args, sample = 0, ngram = 3, predictions = 3):
+
+	start_time = time()
+
+	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, _debug, _debugLong
+
+	SAMPLE_NUM = sample
+	NGRAM_SIZE = ngram
+	NUM_PREDICTIONS = predictions	
+	
+	dirname = args[1]
+	_debug = len(args) > 2 and re.match(r'-d.?', args[2])
+	_debugLong = len(args) > 2 and re.match(r'-dL', args[2])
+
+	TRAIN_DATA = getTokens(dirname)
+
+	print "Directory: %s" % dirname
+	print "Sample size: %d" % len(TRAIN_DATA)
+	print "Ngram size: %d" % NGRAM_SIZE
+
+	validate()
+
+	print "Time elapsed: {:.3f}".format((time()-start_time))
+
 
 def train_ngram(train_set):
 	
@@ -36,9 +69,8 @@ def train_ngram(train_set):
 
 def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
-	dirlist = os.listdir(dirname)#[:SAMPLE_NUM]
-	
-	if len(dirlist) > SAMPLE_NUM:
+	dirlist = os.listdir(dirname)
+	if SAMPLE_NUM > 0:
 		dirlist = random.sample(dirlist, SAMPLE_NUM)
 
 	train_list = []
@@ -96,7 +128,7 @@ def validate():
 
 	if not _debug:
 		#Making thread workers
-		pool = ThreadPool(8)
+		pool = multiprocessing.Pool(multiprocessing.cpu_count())
 		run_score = pool.map(crossvalidate, split_set)
 
 		#Closing threads
@@ -187,28 +219,3 @@ def preprocess_data(text):
 				train_text.append(word)
 
 	return train_text
-
-
-############ Start Running ################
-start_time = time()
-
-random.seed(7)
-
-dirname = sys.argv[1]
-
-NUM_PREDICTIONS = 3
-NGRAM_SIZE = 2
-SAMPLE_NUM = 20
-
-_debug = len(sys.argv) > 2 and re.match(r'-d.?', sys.argv[2])
-_debugLong = len(sys.argv) > 2 and re.match(r'-dL', sys.argv[2])
-
-print "Directory: %s" % dirname
-print "Sample size: %d" % SAMPLE_NUM
-print "Ngram size: %d" % NGRAM_SIZE
-
-# Makes things easier for using pool map later on
-TRAIN_DATA = getTokens(dirname)
-validate()
-
-print "Time elapsed: {:.3f}".format((time()-start_time)) 
