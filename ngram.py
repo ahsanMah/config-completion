@@ -1,7 +1,6 @@
 #! /usr/bin/python
 
 import os as os
-from time import time
 import re, numpy, sys, random
 import multiprocessing
 from sklearn.model_selection import LeaveOneOut
@@ -19,8 +18,6 @@ _debugLong = False
 
 def run(args, sample = 0, ngram = 3, predictions = 3):
 
-	start_time = time()
-
 	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, _debug, _debugLong
 
 	SAMPLE_NUM = sample
@@ -31,15 +28,15 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 	_debug = len(args) > 2 and re.match(r'-d.?', args[2])
 	_debugLong = len(args) > 2 and re.match(r'-dL', args[2])
 
-	TRAIN_DATA = getTokens(dirname)
+	dirlist, TRAIN_DATA = getTokens(dirname)
 
 	print "Directory: %s" % dirname
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
 
-	validate()
+	results = validate()
 
-	print "Time elapsed: {:.3f}".format((time()-start_time))
+	return zip(dirlist, results)
 
 
 def train_ngram(train_set):
@@ -70,10 +67,10 @@ def train_ngram(train_set):
 def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
 	dirlist = os.listdir(dirname)
-	if SAMPLE_NUM > 0:
+	if SAMPLE_NUM > 0 and SAMPLE_NUM <= len(dirlist):
 		dirlist = random.sample(dirlist, SAMPLE_NUM)
 
-	train_list = []
+	train_data = []
 	config_list = []
 	for _dir in dirlist:
 
@@ -88,9 +85,9 @@ def getTokens(dirname):
 
 		raw_text = open(token_file).read()
 		train_text = preprocess_data(raw_text)
-		train_list.append(train_text)
+		train_data.append(train_text)
 	# print config_list
-	return train_list
+	return config_list, train_data
 
 	#Cross validating
 def crossvalidate(train_test):
@@ -141,6 +138,7 @@ def validate():
 	total_score = sum(run_score)
 	total_runs = len(run_score)
 	print "Accuracy: %.4f" % (total_score/total_runs)
+	return run_score
 
 def score(model, ngram_list):
 	# for (key,val) in model.items(): print (key,val) 
