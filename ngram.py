@@ -36,7 +36,7 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 
 	results = validate()
 
-	return zip(dirlist, results)
+	return map(lambda x: list(x), zip(dirlist, results))
 
 
 def train_ngram(train_set):
