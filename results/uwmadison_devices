@@ -1,0 +1,10 @@
+Directory: ../uwmadison_dump/devices_10/
+Sample size: 10
+Ngram size: 2
+Accuracy: 0.7832
+Time elapsed: 6.349
+Directory: ../uwmadison_dump/devices_10/
+Sample size: 20
+Ngram size: 2
+Accuracy: 0.7858
+Time elapsed: 18.804
