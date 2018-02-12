@@ -9,6 +9,7 @@ from nltk.collocations import BigramCollocationFinder, TrigramCollocationFinder
 from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
 
 ###### Declaring constants #########
+RANDOM_SEED = 42
 SAMPLE_NUM = 0
 NGRAM_SIZE = 0
 NUM_PREDICTIONS = 0
@@ -67,8 +68,11 @@ def train_ngram(train_set):
 def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
 	dirlist = os.listdir(dirname)
+
+	#Numpy RandomState maintains consistency across devices
+	prng = numpy.random.RandomState(RANDOM_SEED)
 	if SAMPLE_NUM > 0 and SAMPLE_NUM <= len(dirlist):
-		dirlist = random.sample(dirlist, SAMPLE_NUM)
+		dirlist = prng.choice(dirlist, SAMPLE_NUM)
 
 	train_data = []
 	config_list = []

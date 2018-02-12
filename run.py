@@ -9,34 +9,33 @@ from collections import defaultdict
 
 
 HEADERS = {"device":"Number of Devices", "snapshots":"Sample Size"}
-DEFAULT_OUTPUT_FILE = "devices_run.csv"
+DEFAULT_OUTPUT_FILE = "analysis_results.csv"
 DEFAULT_SNAPSHOT_DIRECTORY = sys.argv[1] + "default"
 DEFAULT_SAMPLE_SIZE = 100
 
-def analysis_func(type, value):	
+def analysis_func(type, idx, value):	
 	func = TYPE_TO_FUNC[type]
 	return func(value)
 
 def device_analysis(snapshot_name):
-	results = Model.run(["",snapshot_name],sample=DEFAULT_SAMPLE_SIZE)
-	device_col = [[(idx+1)*10]]*sample_size
-	results = np.append(device_col, results,axis=1)
-	return results
+	return Model.run(["",snapshot_name],sample=DEFAULT_SAMPLE_SIZE)
 
 def snapshot_analysis(sample_size):
-	results = Model.run(["",DEFAULT_SNAPSHOT_DIRECTORY],sample=sample_size)
-	return results
+	return Model.run(["",DEFAULT_SNAPSHOT_DIRECTORY],sample=sample_size)
 
 def run_analysis(variable, independent_vars, output_file=DEFAULT_OUTPUT_FILE):
 
 	with open(output_file, "w+") as csvfile:
 		writer = csv.writer(csvfile)
-		writer .writerow([HEADERS[variable], "Timestamp", "Accuracy"])
+		writer.writerow([HEADERS[variable], "Timestamp", "Accuracy"])
 
 		for idx, value in enumerate(independent_vars):
-			random.seed(7)
 			start_time = time()
-			results = analysis_func(variable, value)
+
+			results = analysis_func(variable, idx, value)
+			first_col = [[(idx+1)*10]] if variable == "device" else [[value]]
+			results = np.append(first_col*len(results), results,axis=1)
+
 			writer.writerows(results)
 
 			print "Time elapsed: {:.3f}".format((time()-start_time))
@@ -55,9 +54,11 @@ def process(input_file):
 		for row in reader:
 			parsed_vals = parse_row(row,parsers)
 			rawdata[parsed_vals[0]].append(parsed_vals[2])
-	print rawdata	
-	plot_data = [rawdata[independent_var] for independent_var in rawdata]
-	labels = [str(label) for label in rawdata]
+
+	keys = sorted(rawdata.keys())
+	print keys
+	plot_data = [rawdata[independent_var] for independent_var in keys]
+	labels = [str(label) for label in keys]
 
 	plt.figure()
 	bp = plt.boxplot(plot_data, whis=1.5, labels=labels, sym="gD", showmeans=True, meanline=True)
@@ -68,13 +69,13 @@ def process(input_file):
 TYPE_TO_FUNC = {"device": device_analysis, "snapshots": snapshot_analysis}
 
 process_mode = sys.argv[2] if len(sys.argv) > 2 else None
-input_file = sys.argv[3] if len(sys.argv) > 3 else "devices_run.csv"
+input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
 
 DIRNAMES = ["devices_10","devices_20","devices_30","devices_40"]
 DIRNAMES = map(lambda x: sys.argv[1]+x, DIRNAMES)
 
-SAMPLE_SIZES = range(50,100,50)
-print DEFAULT_SNAPSHOT_DIRECTORY
+SAMPLE_SIZES = range(5,30,5)
+
 if process_mode:
 	process(input_file)
 else:

@@ -38,16 +38,22 @@ def dumptext(dirname):
 		return
 	raw_text = ""
 	currdir = dirpath + "/" + dirname
-	filelist = filter(lambda x: not re.match(r'.*\.txt$', x), os.listdir(currdir))
-	
-	if FILENUM:
-		filelist = filelist[:FILENUM]
-	
-	for file in filelist:
-		filename = currdir + "/" + file
 
+	if os.path.isdir(currdir):
+
+		filelist = filter(lambda x: not re.match(r'.*\.txt$', x), os.listdir(currdir))
+		
+		if FILENUM:
+			filelist = filelist[:FILENUM]
+		
+		for file in filelist:
+			filename = currdir + "/" + file
+			with open(filename, 'r') as f:
+				raw_text += f.read()
+	else:
+		filename = currdir
 		with open(filename, 'r') as f:
-			raw_text += f.read()
+				raw_text += f.read()
 
 	with open(outputdir + "/" + dirname +  ".txt", 'w') as f:
 		f.write(preprocess_data(raw_text))
