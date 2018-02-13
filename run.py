@@ -44,25 +44,53 @@ def run_analysis(variable, independent_vars, output_file=DEFAULT_OUTPUT_FILE):
 
 def parse_row(row, parsers):
 	return [parser(val) for val,parser in zip(row, parsers)]
-	
-def process(input_file):
-	parsers = [str, dateutil.parser.parse, float]
+
+def plotdata(plottype, data, labels):
+	plotparams = {
+				"boxplot": { "func" : plt.boxplot,
+							"params":{"x":data, "whis":1.5, "sym":"gD","showmeans":True, "meanline":True}
+							},
+				"barchart": { "func" : plt.bar,
+							  "params": {"x":range(len(labels)), "height":np.mean(data,axis=1), "color":"g"}
+							}
+				}
+
+	plotfunc = plotparams[plottype]["func"]
+	pltparams = plotparams[plottype]["params"]
+
+	plotfunc(**pltparams)
+
+def process(input_file, parsetype="samples", plottype="boxplot"):
+	parsers = {"samples": [int, str, float], "snapshot": [str, str, float], "replacement": [str, str, float]}
+
+	xlabels = {
+				"samples":
+					{"xlabel":"Number of Samples", "Title":"Varying Sample Size"},
+
+				"replacement":
+			  		{"xlabel":"Number of Replacements", "Title":" Accuracies After Adding Replacements"}
+			  }
+
 	rawdata = defaultdict(list)
 	with open(input_file, "r+") as csvfile:
 		reader = csv.reader(csvfile)
 		reader.next()
 		for row in reader:
-			parsed_vals = parse_row(row,parsers)
+			parsed_vals = parse_row(row,parsers[parsetype])
 			rawdata[parsed_vals[0]].append(parsed_vals[2])
 
 	keys = sorted(rawdata.keys())
 	print keys
-	plot_data = [rawdata[independent_var] for independent_var in keys]
-	labels = [str(label) for label in keys]
+	data = [rawdata[independent_var] for independent_var in keys]
+	labels = [x for x in range(0,len(keys))] if parsetype == "replacement" else [str(label) for label in keys]
+	
 
-	plt.figure()
-	bp = plt.boxplot(plot_data, whis=1.5, labels=labels, sym="gD", showmeans=True, meanline=True)
-	plt.savefig('boxplot.png')
+	fig, ax = plt.subplots()
+	plotdata(plottype, data, labels)
+	# plt.boxplot(plot_data, whis=1.5, labels=labels, sym="gD",showmeans=True, meanline=True)
+	# plt.scatter(x_axis, y_axis.flatten())
+	# plt.savefig('boxplot.png')
+	ax.set(ylabel="Prediction Accuracy", **xlabels[parsetype])
 	plt.show()
 	return rawdata
 
@@ -77,6 +105,6 @@ SAMPLE_SIZES = range(50,300,50)
 REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 if process_mode:
-	process(input_file)
+	process(input_file, parsetype="replacement")
 else:
 	run_analysis(variable="snapshots", independent_vars=REPLACEMENTS)
