@@ -71,8 +71,8 @@ dirlist = filter(lambda x: not re.match(r'.*\.txt|(\.DS_Store)', x), os.listdir(
 
 REPLACEMENTS = {'((255|0)\.?){4}' : "SUBNET",
 				'(\d{1,3}\.?){4}' : "IPADDRESS",
-				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID\n"),
-				'description (\\b.*\\b)' : "description DESCRIPTION"
+				'(interface [a-zA-z]*)[^a-zA-z]*\s' : (lambda iface: iface+"#ID\n")
+				#'description (\\b.*\\b)' : "description DESCRIPTION"
 				}
 REGEX_KEYS = REPLACEMENTS.keys()
 COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]

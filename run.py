@@ -8,20 +8,20 @@ from time import time
 from collections import defaultdict
 
 
-HEADERS = {"device":"Number of Devices", "snapshots":"Sample Size"}
+HEADERS = {"device":"Number of Devices", "samples":"Sample Size", "snapshots":"Snapshot Name"}
 DEFAULT_OUTPUT_FILE = "analysis_results.csv"
 DEFAULT_SNAPSHOT_DIRECTORY = sys.argv[1] + "default"
-DEFAULT_SAMPLE_SIZE = 100
+DEFAULT_SAMPLE_SIZE = 50
 
 def analysis_func(type, idx, value):	
 	func = TYPE_TO_FUNC[type]
 	return func(value)
 
-def device_analysis(snapshot_name):
-	return Model.run(["",snapshot_name],sample=DEFAULT_SAMPLE_SIZE)
+def snapshot_analysis(snapshot_name):
+	return Model.run(["", DIRNAME+snapshot_name], sample=DEFAULT_SAMPLE_SIZE)
 
-def snapshot_analysis(sample_size):
-	return Model.run(["",DEFAULT_SNAPSHOT_DIRECTORY],sample=sample_size)
+def sample_analysis(sample_size):
+	return Model.run(["",DEFAULT_SNAPSHOT_DIRECTORY], sample=sample_size)
 
 def run_analysis(variable, independent_vars, output_file=DEFAULT_OUTPUT_FILE):
 
@@ -66,17 +66,17 @@ def process(input_file):
 	plt.show()
 	return rawdata
 
-TYPE_TO_FUNC = {"device": device_analysis, "snapshots": snapshot_analysis}
+TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis, "samples": sample_analysis}
 
+DIRNAME = sys.argv[1]
 process_mode = sys.argv[2] if len(sys.argv) > 2 else None
 input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
 
-DIRNAMES = ["devices_10","devices_20","devices_30","devices_40"]
-DIRNAMES = map(lambda x: sys.argv[1]+x, DIRNAMES)
-
-SAMPLE_SIZES = range(5,30,5)
+DEVICES = ["devices_10","devices_20","devices_30","devices_40"]
+SAMPLE_SIZES = range(50,300,50)
+REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 if process_mode:
 	process(input_file)
 else:
-	run_analysis(variable="snapshots", independent_vars=SAMPLE_SIZES)
+	run_analysis(variable="snapshots", independent_vars=REPLACEMENTS)

@@ -1,4 +1,5 @@
-**/*aux
-**/.log
-**/png
+.csv
+.log
+.png
+.pyc
 results/**

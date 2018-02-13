@@ -29,9 +29,9 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 	_debug = len(args) > 2 and re.match(r'-d.?', args[2])
 	_debugLong = len(args) > 2 and re.match(r'-dL', args[2])
 
-	dirlist, TRAIN_DATA = getTokens(dirname)
-
 	print "Directory: %s" % dirname
+
+	dirlist, TRAIN_DATA = getTokens(dirname)
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
 
@@ -215,6 +215,7 @@ def preprocess_data(text):
 	
 	# NLTK expects lists of words to form ngrams
 	train_text = []
+
 	for line in text.splitlines(True): 
 		for word in line.split(" "):
 			if len(word) > 0:		
