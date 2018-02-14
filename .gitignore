@@ -1,6 +1,5 @@
 *.csv
 *.log
-*.png
 *.pyc
 **/*.aux
 results/**
