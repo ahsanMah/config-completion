@@ -1,6 +1,8 @@
 #! /usr/bin/python
 
 import ngram as Model
+import matplotlib.markers as mark
+import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
 import sys, random, csv, dateutil.parser
@@ -48,10 +50,13 @@ def parse_row(row, parsers):
 def plotdata(plottype, data, labels):
 	plotparams = {
 				"boxplot": { "func" : plt.boxplot,
-							"params":{"x":data, "whis":1.5, "sym":"gD","showmeans":True, "meanline":True}
+							"params":{"x":data, "labels":labels, "whis":1.5, "sym":"g*","showmeans":True, "meanline":True}
 							},
 				"barchart": { "func" : plt.bar,
 							  "params": {"x":range(len(labels)), "height":np.mean(data,axis=1), "color":"g"}
+							},
+				"lineplot": { "func" : plt.plot,
+				  			  "params": {"xdata":range(len(labels)), "ydata":np.mean(data,axis=1), "marker":"go-"}
 							}
 				}
 
@@ -65,10 +70,10 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 
 	xlabels = {
 				"samples":
-					{"xlabel":"Number of Samples", "Title":"Varying Sample Size"},
+					{"xlabel":"Number of Device Configurations", "Title":"Effect of Training Devices on Prediction"},
 
 				"replacement":
-			  		{"xlabel":"Number of Replacements", "Title":" Accuracies After Adding Replacements"}
+			  		{"xlabel":"Number of Replacements", "Title":"Effect of Placeholders on Prediction"}
 			  }
 
 	rawdata = defaultdict(list)
@@ -83,15 +88,21 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	print keys
 	data = [rawdata[independent_var] for independent_var in keys]
 	labels = [x for x in range(0,len(keys))] if parsetype == "replacement" else [str(label) for label in keys]
-	
+	print labels
 
 	fig, ax = plt.subplots()
+
 	plotdata(plottype, data, labels)
-	# plt.boxplot(plot_data, whis=1.5, labels=labels, sym="gD",showmeans=True, meanline=True)
-	# plt.scatter(x_axis, y_axis.flatten())
-	# plt.savefig('boxplot.png')
+
+	green_line = mlines.Line2D([], [], color='green', ls='--', label='Mean')
+	orange_line = mlines.Line2D([], [], color='orange',label='Median')
+	green_marker = mlines.Line2D([], [], color='green', marker="*",ls="None", label='Outlier')
+
+	legend = ax.legend(loc='best', fontsize="large", shadow=True, handles=[green_line, orange_line, green_marker])
+
 	ax.set(ylabel="Prediction Accuracy", **xlabels[parsetype])
 	plt.show()
+
 	return rawdata
 
 TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis, "samples": sample_analysis}
@@ -100,11 +111,12 @@ DIRNAME = sys.argv[1]
 process_mode = sys.argv[2] if len(sys.argv) > 2 else None
 input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
 
+DIRNAMES = ["madison_2011", "umn", "northwestern" ]
 DEVICES = ["devices_10","devices_20","devices_30","devices_40"]
 SAMPLE_SIZES = range(50,300,50)
 REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 if process_mode:
-	process(input_file, parsetype="replacement")
+	process(input_file, parsetype="samples")
 else:
 	run_analysis(variable="snapshots", independent_vars=REPLACEMENTS)

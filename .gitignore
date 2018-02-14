@@ -2,6 +2,5 @@
 *.log
 *.png
 *.pyc
-*.aux
+**/*.aux
 results/**
-
