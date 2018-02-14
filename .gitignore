@@ -5,6 +5,8 @@
 **/*.aux
 results/**
 
+## Mac Files
+*.DS_Store
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
