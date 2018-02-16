@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import os as os, sys, re
+import numpy as np
 from time import time
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -58,7 +59,18 @@ def dumptext(dirname):
 	with open(outputdir + "/" + dirname +  ".txt", 'w') as f:
 		f.write(preprocess_data(raw_text))
 
+def getConfigStats(configname):
+	filename = dirpath + "/" + configname
+	raw_text = ""
+	with open(filename, 'r') as f:
+		raw_text += f.read()
+	raw_text = preprocess_data(raw_text)
+	unique_lines = set(raw_text.split("\n"))
+	unique_tokens = set(raw_text.split(" "))
+	return [len(unique_lines), len(unique_tokens)]
 
+
+########### Start Running #################
 start_time = time()
 
 dirpath  = sys.argv[1]
@@ -87,9 +99,13 @@ print dirlist
 #Making thread workers
 pool = ThreadPool(8)
 pool.map(dumptext, dirlist)
+# results = pool.map(getConfigStats, dirlist)
 
 #Closing threads
 pool.close()
 pool.join()
+
+# print results
+# print np.mean(results,axis=0)
 
 print "Elapsed Time: {:.3f}".format((time()-start_time)) 

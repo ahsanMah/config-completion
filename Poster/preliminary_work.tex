@@ -1,6 +1,6 @@
 \section{Configuration Characteristics}
 
-Prior research in computer networking hints that we should expect network configurations to share a common set of tokens~\cite{compelxity}. According to Hindle,\textit{et al.} 2012~\cite{naturalness}, regularities in bodies of texts can be easily exploited by NLP techniques. We took configurations from a large university network and split up each configuration file into a list of tokens. Tokens included all keywords and subnets with punctuation and newline characters stripped off. For every file we then plotted the percentage of tokens that exist in other router configuration files (Figure~\ref{fig:chart}).\\
+Prior research in computer networking hints that we should expect network configurations to share a common set of tokens~\cite{compelxity}. We took configurations from a large university network and split up each configuration file into a list of tokens. Tokens included all keywords and subnets with punctuation and newline characters stripped off. For every file we then plotted the percentage of tokens that exist in other router configuration files (Figure~\ref{fig:chart}).\\
 
 \begin{figure}
 	\centering
@@ -14,9 +14,7 @@ Our results show that all most all configurations could be rebuilt from the same
 
 \section{NLP-based Configuration Completion}
 
-This effectively makes all router configuration histories a part of the search space for our model. We use an N-gram model to generate predictions using likelihood estimators to score our n-grams. In particular, we made use of bigrams and trigrams, the latter of which performed consistently better.\\
-
-We preprocessed the data and added placeholders for certain tokens like IP addresses, subnet masks etc. This helped to reduce some noise and improved our accuracies (Figure~\ref{fig:replacement_analysis}).\\
+Now that we have confirmed the notion of regularity in our configurations, we can start using statistical techniques to our advantage. According to Hindle,\textit{et al.} 2012~\cite{naturalness}, regularities in bodies of texts can be easily exploited by NLP techniques. Inspired by them, we decided to use N-grams as a basis of our model. This effectively makes all router configuration histories a part of the search space for our model. We use an N-gram model to generate predictions using likelihood estimators to score our n-grams. In particular, we made use of bigrams and trigrams, the latter of which performed consistently better. We preprocessed the data and added placeholders for certain tokens like IP addresses, subnet masks, and interface names.\\
 \begin{figure}
 	\centering
 	\includegraphics[width=\columnwidth]{replacement_analysis.png}
@@ -26,8 +24,20 @@ We preprocessed the data and added placeholders for certain tokens like IP addre
 
 \subsection{Preliminary Results}
 
-We analyzed three large university networks, with configurations retrieved form core routers, border routers, and distribution switches. Universities A, B, and C have 35, 26 and 24 routers respectively
-(Figure~\ref{fig:uni_analysis}). Next, we analyzed the effects of sampling more configuration in time (Figure~\ref{fig:time_analysis}), which did not seem to have a statistically relevant effect on our accuracies. We also varied the number of devices considered for our training set (Figure~\ref{fig:umn_analysis}). This helped us assess our model's performance when we consider devices with different roles.\\
+We analyzed three large university networks, with configurations retrieved form core routers, border routers, and distribution switches. All the routers belong to CISCO and are therefore the configurations are written using the CISCO's language. Universities A, B, and C have 35, 26 and 24 routers respectively
+
+
+\begin{center}
+    \begin{tabular}{ | p{1.5cm} | p{1.5cm}| p{2cm} |  p{1.5cm} |} 
+    \hline
+    University & Number of Configurations & Average Unique Statements & Average Unique Tokens \\ \hline
+    A & 11C & 22C &1000 \\  \hline
+    B & 26 & 526 & 608  \\ \hline
+    C & 24 & 606 & 750\\  \hline
+    \end{tabular}
+\end{center}
+
+(Figure~\ref{fig:uni_analysis}). Next, we analyzed the effects of sampling more configuration in time (Figure~\ref{fig:time_analysis}), which did not seem to have a statistically relevant effect on our accuracies. We also varied the number of devices considered for our training set (Figure~\ref{fig:device_analysis}). This helped us assess our model's performance when we considered devices with different roles. Additionally, our analyses showed that our preprocessing helped reduce a significant amount of noise from the data, where we saw a 5\% increase in accuracy through placeholders alone. The majority of this increase came through generalizing IP addresses and subnet masks.\\
 
 \begin{figure}
 	\centering
@@ -45,7 +55,7 @@ We analyzed three large university networks, with configurations retrieved form 
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\columnwidth]{umn_analysis.png}
+	\includegraphics[width=\columnwidth]{device_analysis.png}
 	\caption{Accuracies generally increase as more devices are considered, until a saturation point is reached after which the types of devices being added start playing a more important role}
     \label{fig:umn_analysis}
 \end{figure}

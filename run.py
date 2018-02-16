@@ -51,13 +51,14 @@ def plotdata(plottype, data, labels):
 	plotparams = {
 				"boxplot": { "func" : plt.boxplot,
 							"params":{"x":data, "labels":labels, "whis":1.5, "sym":"g*","showmeans":True, "meanline":True}
-							},
-				"barchart": { "func" : plt.bar,
-							  "params": {"x":range(len(labels)), "height":np.mean(data,axis=1), "color":"g"}
-							},
-				"lineplot": { "func" : plt.plot,
-				  			  "params": {"xdata":range(len(labels)), "ydata":np.mean(data,axis=1), "marker":"go-"}
 							}
+							# ,
+				# "barchart": { "func" : plt.bar,
+				# 			  "params": {"x":range(len(labels)), "height":np.mean(data,axis=1), "color":"g"}
+				# 			},
+				# "lineplot": { "func" : plt.plot,
+				#   			  "params": {"xdata":range(len(labels)), "ydata":np.mean(data,axis=1), "marker":"go-"}
+				# 			}
 				}
 
 	plotfunc = plotparams[plottype]["func"]
@@ -66,14 +67,21 @@ def plotdata(plottype, data, labels):
 	plotfunc(**pltparams)
 
 def process(input_file, parsetype="samples", plottype="boxplot"):
-	parsers = {"samples": [int, str, float], "snapshot": [str, str, float], "replacement": [str, str, float]}
+	parsers = {"samples": [int, str, float], "snapshots": [str, str, float], "replacements": [str, str, float], "devices": [int, str, float]}
 
 	xlabels = {
-				"samples":
+				"devices":
 					{"xlabel":"Number of Device Configurations", "Title":"Effect of Training Devices on Prediction"},
 
-				"replacement":
-			  		{"xlabel":"Number of Replacements", "Title":"Effect of Placeholders on Prediction"}
+				"replacements":
+			  		{"xlabel":"Number of Replacements", "Title":"Effect of Placeholders on Prediction"},
+			  
+		  		"snapshots":
+				{"xlabel":"University Name", "Title":"Prediction Accuracies for Different Universities"},
+
+				"samples":
+					{"xlabel":"Sample Size", "Title":"Effect of Selecting More Samples in Time"}
+
 			  }
 
 	rawdata = defaultdict(list)
@@ -87,10 +95,12 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	keys = sorted(rawdata.keys())
 	print keys
 	data = [rawdata[independent_var] for independent_var in keys]
-	labels = [x for x in range(0,len(keys))] if parsetype == "replacement" else [str(label) for label in keys]
+	labels = [x for x in range(0,len(keys))] if parsetype == "replacements" else [str(label) for label in keys]
+	# labels = ["A","B","C"]
+	# labels = ["Core","Edge"]
 	print labels
-
-	fig, ax = plt.subplots()
+	# print data
+	fig, ax = plt.subplots(figsize=(5,4))
 
 	plotdata(plottype, data, labels)
 
@@ -98,25 +108,37 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	orange_line = mlines.Line2D([], [], color='orange',label='Median')
 	green_marker = mlines.Line2D([], [], color='green', marker="*",ls="None", label='Outlier')
 
-	legend = ax.legend(loc='best', fontsize="large", shadow=True, handles=[green_line, orange_line, green_marker])
+	legend = ax.legend(loc='lower right', fontsize="small", shadow=True, handles=[green_line, orange_line, green_marker])
 
-	ax.set(ylabel="Prediction Accuracy", **xlabels[parsetype])
+	ax.set(ylabel="Prediction Accuracy", xlabel = "Router Role")#xlabels[parsetype]["xlabel"])
+	# plt.ylim((0.6,1))
+	# plt.savefig("Poster/uni_analysis.png")
 	plt.show()
 
 	return rawdata
 
 TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis, "samples": sample_analysis}
 
-DIRNAME = sys.argv[1]
-process_mode = sys.argv[2] if len(sys.argv) > 2 else None
+process_mode = sys.argv[1]
+DIRNAME = sys.argv[2]
 input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
 
 DIRNAMES = ["madison_2011", "umn", "northwestern" ]
+CORE_EDGE = ["core_only","edge_only"]
 DEVICES = ["devices_10","devices_20","devices_30","devices_40"]
 SAMPLE_SIZES = range(50,300,50)
 REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
-if process_mode:
-	process(input_file, parsetype="samples")
+
+process_dict = {
+				"-p": {"input_file": DIRNAME, "parsetype":"samples"},
+				"-s": {"variable":"snapshots", "independent_vars":[input_file]},
+				"-m": {"variable":"snapshots", "independent_vars":CORE_EDGE}
+}
+
+proc_args = process_dict[process_mode]
+
+if process_mode == "-p":
+	process(**proc_args)
 else:
-	run_analysis(variable="snapshots", independent_vars=REPLACEMENTS)
+	run_analysis(**proc_args)
