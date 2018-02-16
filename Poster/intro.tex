@@ -1,9 +1,59 @@
 \section{Introduction}
 
-Research has shown that configuring control planes can be extremely complex in modern networks~\cite{complexity}. Consequently, this causes configurations to be prone to errors, most of which are only uncovered during operation after a failure has already dealt significant damage~\cite{errors}. Network operators thus try to minimize errors by reusing existing configurations that have been known to work in the past. When creating a network, operators typically write templates containing specific configuration lines that define a base set of behaviours for different router roles~\cite{complexity}. These templates are then filled in with appropriate information to specialize individual routers to achieve objectives for their respective part of the network. Writing templates, however, can be an inefficient solution when dealing with special cases that deviate greatly from the predefined archetypal configurations.\\
+Most networks rely on distributed routing protocols to determine how traffic
+flows through the network. This requires configuring each device to run the
+appropriate protocols, communicate with other devices, and select the desired
+paths.
+%This requires writing a low-level vendor-specific configuration for each
+%device that specifies which protocols and path selection criteria to use. 
+The configurations are often complex, consisting of thousands of lines of
+low-level directives and dozens of symbolic references~\cite{complexity}.
+Consequently, configuration errors are common and the leading cause of
+network outages~\cite{downtime}.
 
-Another common methodology to help network operators write configurations is tab-completion available in the Command Line Interfaces (CLIs) built into routers. These completions will alphabetically suggest all the options available for a token from the invocation point. These suggestions are often unhelpful as the user then has to search for the desired completion.\\
+The prevalence of configuration errors stems from the rudimentary manner in
+which devices are typically configured. Most network devices feature a
+command line interface (CLI) for adding and removing individual lines of
+configuration. The only configuration assistance the CLI provides is
+tab-completion of keywords; this has limited value because keywords are
+listed alphabetically and the operator still has to search for the desired
+completion. To simplify common configuration tasks, many network management
+tools support the use of configuration templates: snippets of configuration
+that can be customized and inserted into the configurations of one or more
+devices~\cite{complexity}. However, these tools do not assist the operator in
+writing the templates or selecting the appropriate template(s) to use in a
+given configuration. More recently, network operators have begun to configure
+devices using higher-level, vendor-independent languages which are
+automatically compiled to the low-level device configurations~\cite{kees}.
+But, these higher-level specifications can still contain dozens of symbolic
+references and be hundreds of lines long.
 
-We thus propose a different approach that can serve to complement existing techniques for writing routing configurations by considering the problem of writing network configurations to be analogous to writing software code. Most configurations are written using vendor specific languages, that make use of rules and keywords similar to traditional programming languages. We envision an interactive system inspired by code completion engines ~\cite{raychev, intelliJ-completion} that could be invoked by network operators as they write router configurations to offer them suggestions for what to put in next, or list the options available from the invocation point. Our long term goal is to expand this engine into a fully featured assistant for writing network configurations, one which can infer the type of router an operator is trying to configure and suggest relevant statements or even stanzas.\\
+%Research has shown that configuring control planes can be extremely complex in
+%modern networks~\cite{complexity}. Consequently, this causes configurations to
+%be prone to errors, most of which are only uncovered during operation after a
+%failure has already dealt significant damage~\cite{errors}. Network operators
+%thus try to minimize errors by reusing existing configurations that have been
+%known to work in the past. When creating a network, operators typically write
+%templates containing specific configuration lines that define a base set of
+%behaviours for different router roles~\cite{complexity}. These templates are
+%then filled in with appropriate information to specialize individual routers
+%to achieve objectives for their respective part of the network. Writing
+%templates, however, can be an inefficient solution when dealing with special
+%cases that deviate greatly from the predefined archetypal configurations.
+
+%Another common methodology to help network operators write configurations is
+%tab-completion available in the Command Line Interfaces (CLIs) built into
+%routers. These completions will alphabetically suggest all the options
+%available for a token from the invocation point. These suggestions are often
+%unhelpful as the user then has to search for the desired completion.
+
+%In this poster, we present our vision and preliminary efforts to design a
+%configuration completion tool for network configurations. Our tool is based on
+%our observation that writing network configurations is analogous to writing
+%software code. Modern development environments feature intelligent code
+%completion engines~\cite{raychev, intelliJ-completion} that suggest what to
+%write next. We aim 
+
+We thus propose a different approach that can serve to complement existing techniques for writing routing configurations by considering the problem of writing network configurations to be analogous to writing software code. Most configurations are written using vendor specific languages, that make use of rules and keywords similar to traditional programming languages. We envision an interactive system inspired by code completion engines ~\cite{raychev, intelliJ-completion} that could be invoked by network operators as they write router configurations to offer them suggestions for what to put in next, or list the options available from the invocation point. Our long term goal is to expand this engine into a fully featured assistant for writing network configurations, one which can infer the type of router an operator is trying to configure and suggest relevant statements or even stanzas.
 
 Recent research on software systems has shown that codebases tend to contain regularities, much like natural languages~\cite{naturalness}. This has motivated further research on using traditional Natural Language Processing techniques for code completion and token suggestion, resulting in fairly accurate models~\cite{naturalness, raychev}. We hypothesize a similar regularity for network configurations, especially since they tend to be homogeneous by design, reusing the same set of keywords/tokens. Our preliminary results show that using an off-the-shelf NLP algorithm with minor modifications, can give us accuracies as high as 95\% for some configurations.\\
