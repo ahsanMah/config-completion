@@ -64,10 +64,10 @@ def getConfigStats(configname):
 	raw_text = ""
 	with open(filename, 'r') as f:
 		raw_text += f.read()
-	raw_text = preprocess_data(raw_text)
-	unique_lines = set(raw_text.split("\n"))
-	unique_tokens = set(raw_text.split(" "))
-	return [len(unique_lines), len(unique_tokens)]
+	# raw_text = preprocess_data(raw_text)
+	total_lines = raw_text.split("\n")
+	# num_tokens = raw_text.split(" ")
+	return len(total_lines)
 
 
 ########### Start Running #################
@@ -98,14 +98,14 @@ print dirlist
 
 #Making thread workers
 pool = ThreadPool(8)
-pool.map(dumptext, dirlist)
-# results = pool.map(getConfigStats, dirlist)
+# pool.map(dumptext, dirlist)
+results = pool.map(getConfigStats, dirlist)
 
 #Closing threads
 pool.close()
 pool.join()
 
 # print results
-# print np.mean(results,axis=0)
+print np.mean(results)
 
 print "Elapsed Time: {:.3f}".format((time()-start_time)) 

@@ -52,10 +52,10 @@ def plotdata(plottype, data, labels):
 				"boxplot": { "func" : plt.boxplot,
 							"params":{"x":data, "labels":labels, "whis":1.5, "sym":"g*","showmeans":True, "meanline":True}
 							}
-							# ,
+				# 			,
 				# "barchart": { "func" : plt.bar,
 				# 			  "params": {"x":range(len(labels)), "height":np.mean(data,axis=1), "color":"g"}
-				# 			},
+				# 			}
 				# "lineplot": { "func" : plt.plot,
 				#   			  "params": {"xdata":range(len(labels)), "ydata":np.mean(data,axis=1), "marker":"go-"}
 				# 			}
@@ -99,10 +99,11 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	# labels = ["A","B","C"]
 	# labels = ["Core","Edge"]
 	print labels
-	# print data
+	print data
 	fig, ax = plt.subplots(figsize=(5,4))
 
 	plotdata(plottype, data, labels)
+	# plt.bar(labels,np.mean(data,axis=1))
 
 	green_line = mlines.Line2D([], [], color='green', ls='--', label='Mean')
 	orange_line = mlines.Line2D([], [], color='orange',label='Median')
@@ -110,8 +111,8 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 
 	legend = ax.legend(loc='lower right', fontsize="small", shadow=True, handles=[green_line, orange_line, green_marker])
 
-	ax.set(ylabel="Prediction Accuracy", xlabel = "Router Role")#xlabels[parsetype]["xlabel"])
-	# plt.ylim((0.6,1))
+	ax.set(ylabel="Prediction Accuracy", xlabel = xlabels[parsetype]["xlabel"])
+	# plt.ylim((0.8,1))
 	# plt.savefig("Poster/uni_analysis.png")
 	plt.show()
 
