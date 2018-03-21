@@ -40,6 +40,11 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 	return map(lambda x: list(x), zip(dirlist, results))
 
 
+
+'''
+Returns a sequence of (ngram, score) pairs
+ordered from highest to lowest score
+'''
 def train_ngram(train_set):
 	
 	train_text = train_set
@@ -107,14 +112,16 @@ def crossvalidate(train_test):
 		train_set += train_list[_idx]
 
 	bigram_model, trigram_model = train_ngram(train_set)
-	model = bigram_model if NGRAM_SIZE==2 else trigram_model
-	model = create_mapping(model,NGRAM_SIZE)
-	
+	# model = bigram_model if NGRAM_SIZE==2 else trigram_model
+	# model = create_mapping(model,NGRAM_SIZE)
+	bimodel = create_mapping(bigram_model,2)
+	trimodel = create_mapping(trigram_model,3)
+
 	test_set = train_list[test[0]]
 	test_ngram_list = list(bigrams(test_set) if NGRAM_SIZE==2 else trigrams(test_set))
 	
 	#Get accuracy
-	run_score = score(model,test_ngram_list)
+	run_score = score(bimodel,trimodel,test_ngram_list)
 	
 	if _debug:
 		print "Score: " + str(run_score)
@@ -144,9 +151,9 @@ def validate():
 	print "Accuracy: %.4f" % (total_score/total_runs)
 	return run_score
 
-def score(model, ngram_list):
-	# for (key,val) in model.items(): print (key,val) 
-	
+def score(bimodel, trimodel, ngram_list):
+	# for (key,val) in trimodel.items(): print (key,val) 
+
 	total_bigrams = 0 #len(ngram_list)
 	incorrect = set()
 	not_found = set()
@@ -165,15 +172,21 @@ def score(model, ngram_list):
 
 
 		total_bigrams += 1
-		if prefix not in model:
+		if prefix not in trimodel:
 			not_found.add((prefix,correct))
 			continue
 
-		prediction = model[prefix]
-		sorted(prediction, key=lambda item: item[1],reverse=True)
+		prediction = trimodel[prefix]
+		# prediction = sorted(prediction, key=lambda item: item[1],reverse=True)
 
 		# Filter out predictions that match the correct answer
 		filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
+		# if len(filtered) == 0:
+		# 	bi_prefix = prefix[-1]
+		# 	prediction = trimodel[bi_prefix]
+		# 	sorted(prediction, key=lambda item: item[1],reverse=True)
+		# 	# Filter out predictions that match the correct answer
+		# 	filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
 		
 		if len(filtered) > 0:
 			correct_predicitons += 1

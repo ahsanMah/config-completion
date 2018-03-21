@@ -90,7 +90,7 @@ REGEX_KEYS = REPLACEMENTS.keys()
 COMPILED_KEYS = [re.compile(regex) for regex in REGEX_KEYS]
 
 # Combines all phrases to be replaced into one giant regex
-# There's a bug in Python taht prevents the following refex from being compiled
+# There's a bug in Python taht prevents the following regex from being compiled
 # r"\b?%s\b?" % r"\b?|\b?".join(REGEX_KEYS)
 MATCHER = re.compile(r"\b%s\b" % r"\b|\b".join(REGEX_KEYS))
 
