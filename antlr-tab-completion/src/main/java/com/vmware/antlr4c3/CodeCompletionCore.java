@@ -118,7 +118,6 @@ public class CodeCompletionCore {
         this.parser = parser;
         this.atn = parser.getATN();
         this.vocabulary = parser.getVocabulary();
-//        System.out.println(vocabulary);
         this.ruleNames = parser.getRuleNames();
         if (preferredRules != null) {
             this.preferredRules = preferredRules;
@@ -157,20 +156,17 @@ public class CodeCompletionCore {
         int offset = 1;
         while (true) {
             Token token = tokenStream.LT(offset++);
-            System.out.println("Moving to " +token.getTokenIndex() + ":"+ token);
             this.tokens.add(token);
             if (token.getTokenIndex() >= caretTokenIndex || token.getType() == Token.EOF) {
                 break;
             }
         }
-        System.out.println("CI:" + currentIndex);
         tokenStream.seek(currentIndex);
 
         LinkedList<Integer> callStack = new LinkedList<>();
         int startRule = context != null ? context.getRuleIndex() : 0;
         this.processRule(this.atn.ruleToStartState[startRule], 0, callStack, "\n");
 
-//        System.out.println("Rule:"+startRule);
         tokenStream.seek(currentIndex);
 
         // now post-process the rule candidates and find the last occurrences
