@@ -1,6 +1,5 @@
 package com.vmware.antlr4c3;
 
-import jdk.internal.cmm.SystemResourcePressureImpl;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.BaseErrorListener;
