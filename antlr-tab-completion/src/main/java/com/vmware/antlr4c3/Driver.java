@@ -1,7 +1,9 @@
 package com.vmware.antlr4c3;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -125,7 +127,16 @@ public class Driver {
         candidates = core.collectCandidates(1, null);
         System.out.println(candidates);*/
 
-        collectCandidates(root, "");
+//        collectCandidates(root, "");
+        CodeCompletionCore.CandidatesCollection candidates = core.collectCandidates(0,root);
+        System.out.println("Candidates: " + candidates );
+
+        List<String> tokenCandidates = new LinkedList<String>();
+        for (Integer candidate : candidates.tokens.keySet()) {
+            tokenCandidates.add(vocabulary.getDisplayName(candidate));
+        }
+        Collections.sort(tokenCandidates);
+        System.out.println(tokenCandidates);
 
     }
 
@@ -148,7 +159,7 @@ public class Driver {
             if (terminalChildren > 0) {
                 Token startToken = context.getStart();
                 Token stopToken = context.getStop();
-                System.out.println(indent + "BASE\t" + context + "\t" + startToken + "\t" + stopToken); 
+                System.out.println(indent + "BASE\t" + context + "\t" + startToken + "\t" + stopToken);
             }
         }
     }

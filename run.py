@@ -74,7 +74,7 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 					{"xlabel":"Number of Device Configurations", "Title":"Effect of Training Devices on Prediction"},
 
 				"replacements":
-			  		{"xlabel":"Number of Replacements", "Title":"Effect of Placeholders on Prediction"},
+			  		{"xlabel":"Incremental Replacements", "Title":"Effect of Placeholders on Prediction"},
 			  
 		  		"snapshots":
 				{"xlabel":"University Name", "Title":"Prediction Accuracies for Different Universities"},
@@ -98,11 +98,13 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	labels = [x for x in range(0,len(keys))] if parsetype == "replacements" else [str(label) for label in keys]
 	# labels = ["A","B","C"]
 	# labels = ["Core","Edge"]
+	# labels = ["Default", "Subnet Masks", "IP Address", "Interface Names", "Descriptions"]
 	print labels
-	print data
+	# print data
 	fig, ax = plt.subplots(figsize=(5,4))
 
 	plotdata(plottype, data, labels)
+
 	# plt.bar(labels,np.mean(data,axis=1))
 
 	green_line = mlines.Line2D([], [], color='green', ls='--', label='Mean')
@@ -111,7 +113,7 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 
 	legend = ax.legend(loc='lower right', fontsize="small", shadow=True, handles=[green_line, orange_line, green_marker])
 
-	ax.set(ylabel="Prediction Accuracy", xlabel = xlabels[parsetype]["xlabel"])
+	ax.set(ylabel="Prediction Accuracy", xlabel = xlabels[parsetype]["xlabel"], title = xlabels[parsetype]["Title"])
 	# plt.ylim((0.8,1))
 	# plt.savefig("Poster/uni_analysis.png")
 	plt.show()
