@@ -190,6 +190,7 @@ def score(bimodel, trimodel, ngram_list):
 		
 		if len(filtered) > 0:
 			correct_predicitons += 1
+			# TODO: Compare with tab completion results
 		else:
 			# print filtered
 			incorrect.add((prefix,correct, tuple(map(lambda (_word,_prob): _word, prediction[:5]))))
@@ -235,3 +236,15 @@ def preprocess_data(text):
 				train_text.append(word)
 
 	return train_text
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,5 +1,6 @@
 package com.vmware.antlr4c3;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -39,33 +40,43 @@ public class Driver {
                 "hostname B\n" +
                 "!\n" +
                 "access-list 1 deny 12.0.0.0 0.255.255.255\n" +
-                "access-list 1 permit any\n" +
-                "!\n" +
-                "interface GigabitEthernet0/1\n" +
-                "    description INFRA:C:Gi0/1\n" +
-                "    ip address 1.0.1.1 255.255.0.0\n" +
-                "    ip ospf cost 1\n" +
-                "    ip access-group 1 in\n" +
-                "!\n" +
-                "interface GigabitEthernet0/2\n" +
-                "    description INFRA:D:Gi0/1\n" +
-                "    ip address 3.0.1.2 255.255.0.0\n" +
-                "    ip ospf cost 1\n" +
-                "    ip access-group 1 in\n" +
-                "!\n" +
-                "interface GigabitEthernet0/3\n" +
-                "    ip address 11.0.1.3 255.0.0.0\n" +
-                "!\n" +
-                "router ospf 1\n" +
-                "    redistribute connected\n" +
-                "    network 3.0.0.0 0.0.255.255 area 0\n" +
-                "    network 1.0.0.0 0.0.255.255 area 0\n" +
-                "!\n" +
-                "end\n";
-		
+                "access-list 1 permit any\n"
+//                "!\n" +
+//                "interface GigabitEthernet0/1\n" +
+//                "    description INFRA:C:Gi0/1\n" +
+//                "    ip address 1.0.1.1 255.255.0.0\n" +
+//                "    ip ospf cost 1\n" +
+//                "    ip access-group 1 in\n" +
+//                "!\n" +
+//                "interface GigabitEthernet0/2\n" +
+//                "    description INFRA:D:Gi0/1\n" +
+//                "    ip address 3.0.1.2 255.255.0.0\n" +
+//                "    ip ospf cost 1\n" +
+//                "    ip access-group 1 in\n" +
+//                "!\n" +
+//                "interface GigabitEthernet0/3\n" +
+//                "    ip address 11.0.1.3 255.0.0.0\n" +
+//                "!\n" +
+//                "router ospf 1\n" +
+//                "    redistribute connected\n" +
+//                "    network 3.0.0.0 0.0.255.255 area 0\n" +
+//                "    network 1.0.0.0 0.0.255.255 area 0\n" +
+//                "!\n" +
+//                "end\n"
+                ;
+
+//        args[0] = "/Users/ahsanmah/cs_projects/example_dump/single-ospf.txt";
+//
+//        File configuration = new File(args[0]);
+//        try {
+//            expression = FileUtils.readFileToString(configuration);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
 		/*// Construct lexer and parser directly
         CiscoLexer lexer = new CiscoLexer(CharStreams.fromString(expression));
-        CommonTokenStream token_stream = new CommonTokenStream(lexer);
+        CommqonTokenStream token_stream = new CommonTokenStream(lexer);
         CiscoParser parser = new CiscoParser(token_stream);
         parser.getInterpreter().setPredictionMode(PredictionMode.SLL);*/
 
@@ -110,7 +121,10 @@ public class Driver {
 
         Vocabulary vocabulary = parser.getVocabulary();
 
+        //Parsing the tree to get tokens and their respective contexes
         collectCandidates(root, "");
+
+        //Context map is populated during the tree traversal
         ArrayList<Token> tokenList = new ArrayList<>(contextMap.keySet());
         tokenList.sort(new Comparator<Token>() {
             @Override
@@ -121,14 +135,13 @@ public class Driver {
 //        System.out.println(tokenList);
 
 
-
-//        FileUtils.wr write to file
         System.out.println("Line," + "Token Name," + "Candidates");
 
         for (Token token: tokenList){
 
             System.out.print(token.getLine() + "," + token.getText() + ",");
-            CodeCompletionCore.CandidatesCollection candidates = core.collectCandidates(token.getTokenIndex(),contextMap.get(token));
+            CodeCompletionCore.CandidatesCollection candidates =
+                    core.collectCandidates(token.getTokenIndex()+1,contextMap.get(token));
 //            System.out.println(candidates );
 
             List<String> tokenCandidates = new LinkedList<String>();

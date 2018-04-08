@@ -98,14 +98,14 @@ print dirlist
 
 #Making thread workers
 pool = ThreadPool(8)
-# pool.map(dumptext, dirlist)
-results = pool.map(getConfigStats, dirlist)
+pool.map(dumptext, dirlist)
+# results = pool.map(getConfigStats, dirlist)
 
 #Closing threads
 pool.close()
 pool.join()
 
 # print results
-print np.mean(results)
+# print np.mean(results)
 
 print "Elapsed Time: {:.3f}".format((time()-start_time)) 
