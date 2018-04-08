@@ -1,9 +1,7 @@
 package com.vmware.antlr4c3;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -26,8 +24,12 @@ import org.batfish.grammar.cisco.CiscoCombinedParser;
 import org.batfish.grammar.cisco.CiscoLexer;
 import org.batfish.grammar.cisco.CiscoParser;
 import org.batfish.grammar.cisco.CiscoParser.Cisco_configurationContext;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+import org.apache.commons.io.FileUtils;
 
 public class Driver {
+
+    private static HashMap<Token, ParserRuleContext> contextMap = new HashMap<>();
 
     public static void main (String[] args) {
         String expression =
@@ -106,43 +108,42 @@ public class Driver {
 
         // 1) At the input start.
 
-        System.out.println("***** Printing Candidates *****");
-
         Vocabulary vocabulary = parser.getVocabulary();
 
-        /*for (Token token: tokens) {
-            System.out.println(token);
-            CodeCompletionCore.CandidatesCollection candidates = 
-                core.collectCandidates(token.getTokenIndex(), root);
-            //System.out.println(candidates);
+        collectCandidates(root, "");
+        ArrayList<Token> tokenList = new ArrayList<>(contextMap.keySet());
+        tokenList.sort(new Comparator<Token>() {
+            @Override
+            public int compare(Token o1, Token o2) {
+                return o1.getLine() - o2.getLine();
+            }
+        });
+//        System.out.println(tokenList);
+
+
+
+//        FileUtils.wr write to file
+        System.out.println("Line," + "Token Name," + "Candidates");
+
+        for (Token token: tokenList){
+
+            System.out.print(token.getLine() + "," + token.getText() + ",");
+            CodeCompletionCore.CandidatesCollection candidates = core.collectCandidates(token.getTokenIndex(),contextMap.get(token));
+//            System.out.println(candidates );
+
             List<String> tokenCandidates = new LinkedList<String>();
             for (Integer candidate : candidates.tokens.keySet()) {
                 tokenCandidates.add(vocabulary.getDisplayName(candidate));
             }
+//            Collections.sort(tokenCandidates);
             System.out.println(tokenCandidates);
-        }*/
 
-        /*CodeCompletionCore.CandidatesCollection candidates = core.collectCandidates(0, null);
-        System.out.println(candidates);
-        candidates = core.collectCandidates(1, null);
-        System.out.println(candidates);*/
-
-//        collectCandidates(root, "");
-        CodeCompletionCore.CandidatesCollection candidates = core.collectCandidates(0,root);
-        System.out.println("Candidates: " + candidates );
-
-        List<String> tokenCandidates = new LinkedList<String>();
-        for (Integer candidate : candidates.tokens.keySet()) {
-            tokenCandidates.add(vocabulary.getDisplayName(candidate));
         }
-        Collections.sort(tokenCandidates);
-        System.out.println(tokenCandidates);
-
     }
 
     private static void collectCandidates(ParserRuleContext context, String indent) {
         if (context.getChildCount() > 0) {
-            System.out.println(indent + context.getRuleIndex());
+//            System.out.println(indent + context.getRuleIndex());
 
             int terminalChildren = 0;
             for (int i = 0; i < context.getChildCount(); i++) {
@@ -159,7 +160,8 @@ public class Driver {
             if (terminalChildren > 0) {
                 Token startToken = context.getStart();
                 Token stopToken = context.getStop();
-                System.out.println(indent + "BASE\t" + context + "\t" + startToken + "\t" + stopToken);
+                contextMap.put(startToken, context);
+//                System.out.println(indent + "BASE\t" + context + "\t" + startToken + "\t" + stopToken);
             }
         }
     }
