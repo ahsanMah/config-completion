@@ -65,20 +65,20 @@ public class Driver {
 //                "end\n"
                 ;
 
-//        args[0] = "/Users/ahsanmah/cs_projects/example_dump/single-ospf.txt";
-//
-//        File configuration = new File(args[0]);
-//        try {
-//            expression = FileUtils.readFileToString(configuration);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        args[0] = "/Users/ahsanmah/cs_projects/example_dump/single-ospf.txt";
+        String ngramfile = "/Users/ahsanmah/cs_projects/config-completion/ngram_dump.csv";
+        String ngramtext = "";
 
-		/*// Construct lexer and parser directly
-        CiscoLexer lexer = new CiscoLexer(CharStreams.fromString(expression));
-        CommqonTokenStream token_stream = new CommonTokenStream(lexer);
-        CiscoParser parser = new CiscoParser(token_stream);
-        parser.getInterpreter().setPredictionMode(PredictionMode.SLL);*/
+        File configuration = new File(args[0]);
+        try {
+            expression = FileUtils.readFileToString(configuration);
+            ngramtext = FileUtils.readFileToString(new File(ngramfile));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //Build map of prefixes to token predictions
+        HashMap<String, List<String>> ngramMap = buildNgramMap(ngramtext);
 
 
 		// Prepare batfish settings
@@ -106,7 +106,7 @@ public class Driver {
         while (tok.getType() != Token.EOF) {
             tokens.add(tok);
             tok = tokenStream.LT(offset++);
-            break;
+//            break;
         }
         lexer.reset();
 
@@ -124,22 +124,20 @@ public class Driver {
         //Parsing the tree to get tokens and their respective contexes
         collectCandidates(root, "");
 
-        //Context map is populated during the tree traversal
-        ArrayList<Token> tokenList = new ArrayList<>(contextMap.keySet());
-        tokenList.sort(new Comparator<Token>() {
-            @Override
-            public int compare(Token o1, Token o2) {
-                return o1.getLine() - o2.getLine();
-            }
-        });
-//        System.out.println(tokenList);
-
-
         System.out.println("Line," + "Token Name," + "Candidates");
 
-        for (Token token: tokenList){
+        for(int i = 1; i < tokens.size(); i++ ){
 
-            System.out.print(token.getLine() + "," + token.getText() + ",");
+            Token prev_token = tokens.get(i-1);
+            Token token = tokens.get(i);
+            String prefix = prev_token.getText()+token.getText();
+
+            //TODO: Clean up prefixes
+
+//            System.out.println(prefix);
+//            System.out.println(ngramMap.get(prefix));
+//
+//            System.out.print(token.getLine() + "," + token.getText() + ",");
             CodeCompletionCore.CandidatesCollection candidates =
                     core.collectCandidates(token.getTokenIndex()+1,contextMap.get(token));
 //            System.out.println(candidates );
@@ -149,9 +147,39 @@ public class Driver {
                 tokenCandidates.add(vocabulary.getDisplayName(candidate));
             }
 //            Collections.sort(tokenCandidates);
-            System.out.println(tokenCandidates);
+//            System.out.println(tokenCandidates);
 
         }
+
+        // TODO: For every token in the line, check to see if present in ngram map
+        // Make histogram/bin counts of tokens that appear in tab completion
+
+    }
+
+
+    //Builds an association map from prefixes to a list of token predictions
+    private static HashMap<String,List<String>> buildNgramMap(String ngramtext) {
+        String[] mappings = ngramtext.split("\\n");
+        String prefix;
+        HashMap<String, List<String>> ngramMap = new HashMap<>();
+
+        for (String line : mappings){
+            String[] line_split = line.split(",");
+
+            prefix = line_split[0]+line_split[1];
+            List<String> predictions = new ArrayList<String>();
+
+            for(int i=2; i < line_split.length; i++){
+                String token = line_split[i];
+                predictions.add(token);
+//                System.out.println(predictions.get(i-2));
+            }
+
+            ngramMap.put(prefix,predictions);
+
+        }
+
+        return ngramMap;
     }
 
     private static void collectCandidates(ParserRuleContext context, String indent) {

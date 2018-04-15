@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 import os as os
-import re, numpy, sys, random
+import re, numpy, sys, random, csv
 import multiprocessing
 from sklearn.model_selection import LeaveOneOut
 from nltk.util import bigrams, trigrams
@@ -35,9 +35,11 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
 
-	results = validate()
+	dump_ngram_map()
 
-	return map(lambda x: list(x), zip(dirlist, results))
+	# results = validate()
+
+	# return map(lambda x: list(x), zip(dirlist, results))
 
 
 
@@ -74,6 +76,8 @@ def getTokens(dirname):
 	dirname = os.path.expanduser(dirname) 
 	dirlist = os.listdir(dirname)
 
+	print dirlist
+
 	#Numpy RandomState maintains consistency across devices
 	prng = numpy.random.RandomState(RANDOM_SEED)
 	if SAMPLE_NUM > 0 and SAMPLE_NUM <= len(dirlist):
@@ -86,7 +90,8 @@ def getTokens(dirname):
 		# Problematic directories
 		# Most are unrealistic examples of configurations 
 		# and therefore confound the model
-		if re.match(r'^fat|^ext.*|^repair_tests|.*snapshots$|^dep',_dir):
+		if re.match(r'^fat|^ext.*|^repair_tests|.*snapshots$|^dep|.*\.DS',_dir):
+			print _dir
 			continue
 
 		token_file = dirname+"/"+_dir
@@ -236,6 +241,30 @@ def preprocess_data(text):
 				train_text.append(word)
 
 	return train_text
+
+
+def dump_ngram_map():
+	train_set = [token for wordlist in TRAIN_DATA for token in wordlist]
+	bigram_model, trigram_model = train_ngram(train_set)
+	trimodel = create_mapping(trigram_model,3)	
+	# print trigram_model
+	output_file = "ngram_dump.csv"
+
+	with open(output_file, "w+") as csvfile:
+		writer = csv.writer(csvfile)
+		writer.writerow(["First", "Second", "Prediction"])
+		
+		data = []
+		for prefix in trimodel:
+			w1,w2 = prefix
+			results = [w1,w2]
+			for (word,accuracy) in trimodel[prefix][:NUM_PREDICTIONS]:
+				results.append(word)
+			data.append(results)
+
+		writer.writerows(data)
+
+run(sys.argv)
 
 
 
