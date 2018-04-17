@@ -250,21 +250,20 @@ def dump_ngram_map():
 	# print trigram_model
 	output_file = "ngram_dump.csv"
 
+	data = []
+	for prefix in trimodel:
+		w1,w2 = prefix
+		results = [w1,w2]
+		for (word,accuracy) in trimodel[prefix][:NUM_PREDICTIONS]:
+			results.append(word)
+		data.append(results)
+
 	with open(output_file, "w+") as csvfile:
 		writer = csv.writer(csvfile)
 		writer.writerow(["First", "Second", "Prediction"])
-		
-		data = []
-		for prefix in trimodel:
-			w1,w2 = prefix
-			results = [w1,w2]
-			for (word,accuracy) in trimodel[prefix][:NUM_PREDICTIONS]:
-				results.append(word)
-			data.append(results)
-
 		writer.writerows(data)
 
-run(sys.argv)
+# run(sys.argv)
 
 
 

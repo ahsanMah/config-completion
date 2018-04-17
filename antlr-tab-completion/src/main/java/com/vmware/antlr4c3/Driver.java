@@ -3,6 +3,7 @@ package com.vmware.antlr4c3;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -118,11 +119,20 @@ public class Driver {
         CodeCompletionCore core = new CodeCompletionCore(parser, null, null);
 
         // 1) At the input start.
-
         Vocabulary vocabulary = parser.getVocabulary();
+
 
         //Parsing the tree to get tokens and their respective contexes
         collectCandidates(root, "");
+
+        HashMap<Integer,Integer> histogram = new HashMap<>();
+        LinkedList<Integer> data = new LinkedList<>();
+
+        HashMap<String, String> replacements = new HashMap<>();
+        replacements.put("(255|0\\.?){4}" , "SUBNET");
+        replacements.put("(\\d{1,3}\\.?){4}" , "IPADDRESS");
+        replacements.put("(interface [a-zA-z]*)[^a-zA-z]*\\s" , "interface#ID\n");
+        replacements.put("description (\\b.*\\b)", "description DESCRIPTION");
 
         System.out.println("Line," + "Token Name," + "Candidates");
 
@@ -132,12 +142,20 @@ public class Driver {
             Token token = tokens.get(i);
             String prefix = prev_token.getText()+token.getText();
 
-            //TODO: Clean up prefixes
-
-//            System.out.println(prefix);
+            //TODO: Clean up prefixes - replacements
+            for(String pattern : replacements.keySet()){
+                prefix = prefix.replaceAll(pattern, replacements.get(pattern));
+            }
+            System.out.println(prefix);
 //            System.out.println(ngramMap.get(prefix));
 //
+
+//            if (!ngramMap.containsKey(prefix)){
+//                continue;
+//            }
 //            System.out.print(token.getLine() + "," + token.getText() + ",");
+
+
             CodeCompletionCore.CandidatesCollection candidates =
                     core.collectCandidates(token.getTokenIndex()+1,contextMap.get(token));
 //            System.out.println(candidates );
@@ -148,11 +166,28 @@ public class Driver {
             }
 //            Collections.sort(tokenCandidates);
 //            System.out.println(tokenCandidates);
+            int count = tokenCandidates.size();
+            data.add(count);
 
+//            histogram.put(count, histogram.get(count)+1);
         }
 
         // TODO: For every token in the line, check to see if present in ngram map
         // Make histogram/bin counts of tokens that appear in tab completion
+
+//        System.out.println(histogram);
+
+        File output = new File("output.csv");
+
+//        for (Integer key: histogram.keySet()){
+//            data.add(key.toString()+","+histogram.get(key).toString());
+//        }
+
+        try {
+            FileUtils.writeLines(output,data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

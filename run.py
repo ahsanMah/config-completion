@@ -5,7 +5,7 @@ import matplotlib.markers as mark
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
-import sys, random, csv, dateutil.parser
+import sys, random, csv, dateutil.parser, collections
 from time import time
 from collections import defaultdict
 
@@ -120,11 +120,35 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 
 	return rawdata
 
+def make_histogram(input_file):
+	# TODO: Use plotly for nicer graphs
+	with open(input_file) as counts:
+		data = [int(x) for x in counts]
+		fig, ax = plt.subplots(figsize=(7,7))
+
+		# n, bins, patches = plt.hist(data)
+		# print bins
+		# print n
+		# cntr = collections.Counter(data)
+
+		x,bins = np.histogram(data,bins=[0,1,3,10,max(data)])
+		print x
+		print bins
+		labels = ["0","<=3","<=10",">10"]
+		plt.pie(x, labels = labels, autopct='%1.1f%%')
+		plt.show()
+
+
+
 TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis, "samples": sample_analysis}
 
 process_mode = sys.argv[1]
 DIRNAME = sys.argv[2]
 input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
+
+if process_mode == "-hist":
+	make_histogram(DIRNAME)
+	exit()
 
 DIRNAMES = ["madison_2011", "umn", "northwestern" ]
 CORE_EDGE = ["core_only","edge_only"]
@@ -140,6 +164,7 @@ process_dict = {
 }
 
 proc_args = process_dict[process_mode]
+
 
 if process_mode == "-p":
 	process(**proc_args)
