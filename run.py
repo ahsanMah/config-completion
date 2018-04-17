@@ -128,12 +128,15 @@ def make_histogram(input_file):
 
 		# n, bins, patches = plt.hist(data)
 		# print bins
-		# print n
-		# cntr = collections.Counter(data)
+		# print n 
+		cntr = collections.Counter(data)
+		print cntr
 
-		x,bins = np.histogram(data,bins=[0,1,3,10,max(data)])
-		print x
-		print bins
+		bins=[0,1,3,10,max(data)]
+		x,bins = np.histogram(data,bins)
+		# print x,bins
+		# print x
+		# print bins
 		labels = ["0","<=3","<=10",">10"]
 		plt.pie(x, labels = labels, autopct='%1.1f%%')
 		plt.show()

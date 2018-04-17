@@ -66,20 +66,23 @@ public class Driver {
 //                "end\n"
                 ;
 
-        args[0] = "/Users/ahsanmah/cs_projects/example_dump/single-ospf.txt";
-        String ngramfile = "/Users/ahsanmah/cs_projects/config-completion/ngram_dump.csv";
-        String ngramtext = "";
+//        args[0] = "/Users/ahsanmah/cs_projects/example_dump/single-ospf.txt";
 
-        File configuration = new File(args[0]);
-        try {
-            expression = FileUtils.readFileToString(configuration);
-            ngramtext = FileUtils.readFileToString(new File(ngramfile));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+//        String ngramfile = "/Users/ahsanmah/cs_projects/config-completion/ngram_dump.csv";
+//
+//        String ngramtext = "";
+//
+//        File configuration = new File(args[0]);
+//        try {
+//            expression = FileUtils.readFileToString(configuration);
+//            ngramtext = FileUtils.readFileToString(new File(ngramfile));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         //Build map of prefixes to token predictions
-        HashMap<String, List<String>> ngramMap = buildNgramMap(ngramtext);
+//        HashMap<String, List<String>> ngramMap = buildNgramMap(ngramtext);
 
 
 		// Prepare batfish settings
@@ -129,59 +132,62 @@ public class Driver {
         LinkedList<Integer> data = new LinkedList<>();
 
         HashMap<String, String> replacements = new HashMap<>();
-        replacements.put("(255|0\\.?){4}" , "SUBNET");
         replacements.put("(\\d{1,3}\\.?){4}" , "IPADDRESS");
+        replacements.put("(255|0\\.?){4}" , "SUBNET");
         replacements.put("(interface [a-zA-z]*)[^a-zA-z]*\\s" , "interface#ID\n");
         replacements.put("description (\\b.*\\b)", "description DESCRIPTION");
 
         System.out.println("Line," + "Token Name," + "Candidates");
 
-        for(int i = 1; i < tokens.size(); i++ ){
+        for(int i = 1; i < tokens.size()-1; i++ ){
 
-            Token prev_token = tokens.get(i-1);
+            String prev_token = tokens.get(i-1).getText();
             Token token = tokens.get(i);
-            String prefix = prev_token.getText()+token.getText();
+            String next_token = tokens.get(i+1).getText();
+            String prefix = prev_token+token.getText();
 
             //TODO: Clean up prefixes - replacements
             for(String pattern : replacements.keySet()){
                 prefix = prefix.replaceAll(pattern, replacements.get(pattern));
             }
-            System.out.println(prefix);
-//            System.out.println(ngramMap.get(prefix));
+
 //
 
 //            if (!ngramMap.containsKey(prefix)){
 //                continue;
 //            }
+
+//            boolean correct = false;
+//
+//            for (String prediction: ngramMap.get(prefix)){
+//                if (prediction.equals(next_token)) correct = true;
+//            }
+//
+//            System.out.println(prefix + "-->" + correct + ", " + next_token);
+//            System.out.println(ngramMap.get(prefix));
 //            System.out.print(token.getLine() + "," + token.getText() + ",");
 
 
             CodeCompletionCore.CandidatesCollection candidates =
                     core.collectCandidates(token.getTokenIndex()+1,contextMap.get(token));
-//            System.out.println(candidates );
+            System.out.print(token.getText() +":" +contextMap.get(token)+ "-->");
 
             List<String> tokenCandidates = new LinkedList<String>();
             for (Integer candidate : candidates.tokens.keySet()) {
                 tokenCandidates.add(vocabulary.getDisplayName(candidate));
             }
 //            Collections.sort(tokenCandidates);
-//            System.out.println(tokenCandidates);
+            System.out.println(tokenCandidates);
             int count = tokenCandidates.size();
             data.add(count);
 
-//            histogram.put(count, histogram.get(count)+1);
         }
 
         // TODO: For every token in the line, check to see if present in ngram map
         // Make histogram/bin counts of tokens that appear in tab completion
 
-//        System.out.println(histogram);
-
         File output = new File("output.csv");
 
-//        for (Integer key: histogram.keySet()){
-//            data.add(key.toString()+","+histogram.get(key).toString());
-//        }
 
         try {
             FileUtils.writeLines(output,data);
