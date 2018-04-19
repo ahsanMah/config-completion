@@ -162,7 +162,7 @@ def validate():
 	return run_score
 
 def score(bimodel, trimodel, ngram_list):
-	
+
 	stanza_map = build_stanza_models()
 	# print stanza_map
 
@@ -174,9 +174,7 @@ def score(bimodel, trimodel, ngram_list):
 	correct_predicitons = 0
 	current_stanza = ""
 
-	for idx in xrange(len(ngram_list)):
-
-		ngram = ngram_list[idx]
+	for ngram in ngram_list:
 
 		# Don't predict for end of line
 		if re.match(r'.*\n.+', "".join(ngram)):
@@ -189,7 +187,8 @@ def score(bimodel, trimodel, ngram_list):
 			ngram = ngram[1:]
 
 		#Defaults to whatever the length of the ngram is
-		ngram_model = trimodel if len(ngram) == 3 else bimodel
+		ngram_length = len(ngram)
+		ngram_model = trimodel if ngram_length == 3 else bimodel
 
 		ngram = tuple(map(lambda x: x.strip(), ngram))
 		prefix = ngram[:-1]
@@ -199,23 +198,23 @@ def score(bimodel, trimodel, ngram_list):
 		total_bigrams += 1
 
 		if prefix not in ngram_model:
-			print "Not Found", prefix
+			# print "Not Found", prefix
 			not_found.add((prefix,correct))
 			continue
-
 
 		stanza_start = False
 		if stanza_candidate in STANZA_DATA:
 			stanza_start = True
 			current_stanza = stanza_candidate
-			print "Start ->", ngram
-
 
 		# Use stanza specific model if available
 		# If start of stanza line, use default model to predict
 		if use_stanzas and current_stanza in stanza_map and not stanza_start:
 			# print current_stanza
-			ngram_model = stanza_map[current_stanza]
+			
+			# Choose bigram or trigram according to (ngram_size - offset) into array
+			model_idx = ngram_length-2
+			ngram_model = stanza_map[current_stanza][model_idx]
 		
 		prediction = ngram_model.get(prefix)
 
@@ -340,7 +339,8 @@ def build_stanza_models():
 		bigrams, trigrams = train_ngram(STANZA_DATA[stanza])
 
 		if len(trigrams) > 0:
-			stanza_map[stanza] = create_mapping(trigrams)
+			stanza_map[stanza].append(create_mapping(bigrams))
+			stanza_map[stanza].append(create_mapping(trigrams))
 
 	return stanza_map
 
