@@ -7,6 +7,7 @@ from sklearn.model_selection import LeaveOneOut
 from nltk.util import bigrams, trigrams
 from nltk.collocations import BigramCollocationFinder, TrigramCollocationFinder
 from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
+from collections import defaultdict
 
 ###### Declaring constants #########
 RANDOM_SEED = 42
@@ -14,12 +15,13 @@ SAMPLE_NUM = 0
 NGRAM_SIZE = 0
 NUM_PREDICTIONS = 0
 TRAIN_DATA = []
+STANZA_DATA = {}
 _debug = False
 _debugLong = False
 
 def run(args, sample = 0, ngram = 3, predictions = 3):
 
-	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, _debug, _debugLong
+	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, STANZA_DATA, _debug, _debugLong
 
 	SAMPLE_NUM = sample
 	NGRAM_SIZE = ngram
@@ -31,13 +33,19 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 
 	print "Directory: %s" % dirname
 
-	dirlist, TRAIN_DATA = getTokens(dirname)
+	dirlist, TRAIN_DATA, STANZA_DATA = getTokens(dirname)
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
 
-	dump_ngram_map()
+	# dump_ngram_map()
+
+	stanza_map = build_stanza_models()
+	print stanza_map
+
 
 	# results = validate()
+
+	# results = validate_stanzas()
 
 	# return map(lambda x: list(x), zip(dirlist, results))
 
@@ -84,7 +92,9 @@ def getTokens(dirname):
 		dirlist = prng.choice(dirlist, SAMPLE_NUM)
 
 	train_data = []
+	stanza_train_data = defaultdict(list)
 	config_list = []
+
 	for _dir in dirlist:
 
 		# Problematic directories
@@ -99,9 +109,10 @@ def getTokens(dirname):
 
 		raw_text = open(token_file).read()
 		train_text = preprocess_data(raw_text)
+		get_stanzas(raw_text, stanza_train_data)
 		train_data.append(train_text)
 	# print config_list
-	return config_list, train_data
+	return config_list, train_data, stanza_train_data
 
 	#Cross validating
 def crossvalidate(train_test):
@@ -121,6 +132,7 @@ def crossvalidate(train_test):
 	# model = create_mapping(model,NGRAM_SIZE)
 	bimodel = create_mapping(bigram_model,2)
 	trimodel = create_mapping(trigram_model,3)
+
 
 	test_set = train_list[test[0]]
 	test_ngram_list = list(bigrams(test_set) if NGRAM_SIZE==2 else trigrams(test_set))
@@ -168,12 +180,16 @@ def score(bimodel, trimodel, ngram_list):
 
 		# Don't predict for end of line
 		if re.match(r'.*\n.+', "".join(ngram)):
+			# print "Skipping ", ngram
 			continue
 
 		ngram = tuple(map(lambda x: x.strip(), ngram))
 
 		prefix = ngram[:NGRAM_SIZE-1]
 		correct = ngram[-1]
+
+		if prefix[0].strip() in STANZA_DATA:
+			print prefix
 
 
 		total_bigrams += 1
@@ -186,6 +202,7 @@ def score(bimodel, trimodel, ngram_list):
 
 		# Filter out predictions that match the correct answer
 		filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
+
 		# if len(filtered) == 0:
 		# 	bi_prefix = prefix[-1]
 		# 	prediction = trimodel[bi_prefix]
@@ -237,7 +254,7 @@ def preprocess_data(text):
 
 	for line in text.splitlines(True): 
 		for word in line.split(" "):
-			if len(word) > 0:		
+			if len(word) > 0 and word != "\n":		
 				train_text.append(word)
 
 	return train_text
@@ -263,7 +280,45 @@ def dump_ngram_map():
 		writer.writerow(["First", "Second", "Prediction"])
 		writer.writerows(data)
 
-# run(sys.argv)
+def get_stanzas(raw_text, stanza_map = defaultdict(list)):
+
+	stanza_list = raw_text.split("!")
+	
+	for stanza in stanza_list:
+		data = preprocess_data(stanza)
+		if len(data)>0:
+			stanza_map[data[0].strip()] += data[1:]
+
+	return stanza_map
+
+# def validate_stanza():
+
+# 	for stanza in STANZA_DATA:
+
+
+'''
+The NLTK package breaks when all the tokens are the same as it cannot score them
+For trigram model, we need at least two different tokens
+
+	# tri_finder = TrigramCollocationFinder.from_words(["a","b","a", "a"])
+	# trigram_scores = tri_finder.score_ngrams(TrigramAssocMeasures.likelihood_ratio)
+	# print trigram_scores
+
+'''
+
+def build_stanza_models():
+
+	stanza_map = {}
+
+	for stanza in STANZA_DATA:
+		print STANZA_DATA[stanza]
+		bigrams, trigrams = train_ngram(STANZA_DATA[stanza])
+		stanza_map[stanza] = create_mapping(trigrams,3)
+
+	return stanza_map
+
+
+run(sys.argv)
 
 
 

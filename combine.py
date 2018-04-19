@@ -30,7 +30,7 @@ def preprocess_data(text):
 	# Substitutes each matching regex with the corresponding
 	# replacement using the callback function
 	cleaned_text = MATCHER.sub(get_regex_match, text)
-	cleaned_text = re.sub('(!.*\n)', "", cleaned_text)
+	# cleaned_text = re.sub('(!.*\n)', "", cleaned_text)
 
 	return cleaned_text
 
