@@ -65,7 +65,6 @@ def train_ngram(train_set):
 		#Getting bigrams
 		bi_finder = BigramCollocationFinder.from_words(train_text)
 		tri_finder = TrigramCollocationFinder.from_words(train_text)
-		bi_finder.apply_freq_filter(3)
 
 		#Scoring each ngram using likelihood ratios
 		bigram_scores = bi_finder.score_ngrams(BigramAssocMeasures.likelihood_ratio)
@@ -73,14 +72,6 @@ def train_ngram(train_set):
 
 	except Exception as e:
 		print "Insufficient data to build ngram model"
-	# bigram_scores = sorted(bigram_scores, key=lambda item: item[1],reverse=True)
-	# trigram_scores = sorted(trigram_scores, key=lambda item: item[1],reverse=True)
-
-	# bigram_scores = bigram_scores[:5]
-	# trigram_scores = trigram_scores[:5]
-
-	# for result in bigram_scores: print result
-	# for result in trigram_scores: print result
 
 	return bigram_scores, trigram_scores
 
@@ -132,10 +123,8 @@ def crossvalidate(train_test):
 		train_set += train_list[_idx]
 
 	bigram_model, trigram_model = train_ngram(train_set)
-	# model = bigram_model if NGRAM_SIZE==2 else trigram_model
-	# model = create_mapping(model,NGRAM_SIZE)
-	bimodel = create_mapping(bigram_model,2)
-	trimodel = create_mapping(trigram_model,3)
+	bimodel = create_mapping(bigram_model)
+	trimodel = create_mapping(trigram_model)
 
 
 	test_set = train_list[test[0]]
@@ -173,8 +162,7 @@ def validate():
 	return run_score
 
 def score(bimodel, trimodel, ngram_list):
-	# for (key,val) in trimodel.items(): print (key,val) 
-
+	
 	stanza_map = build_stanza_models()
 	# print stanza_map
 
@@ -186,45 +174,55 @@ def score(bimodel, trimodel, ngram_list):
 	correct_predicitons = 0
 	current_stanza = ""
 
-	for ngram in ngram_list:
+	for idx in xrange(len(ngram_list)):
+
+		ngram = ngram_list[idx]
 
 		# Don't predict for end of line
 		if re.match(r'.*\n.+', "".join(ngram)):
-			print "Skipping ", ngram
-			continue
+			# If not start of new line or end of comment
+			if (not re.match(r'.*\n', ngram[0])) or re.match(r'.*\n', ngram[1]):
+				# print "Skipping", ngram
+				continue
+
+			# Try to predict bigram if beginning of a new line
+			ngram = ngram[1:]
+
+		#Defaults to whatever the length of the ngram is
+		ngram_model = trimodel if len(ngram) == 3 else bimodel
 
 		ngram = tuple(map(lambda x: x.strip(), ngram))
-
-		prefix = ngram[:NGRAM_SIZE-1]
+		prefix = ngram[:-1]
 		correct = ngram[-1]
 		stanza_candidate = prefix[0].strip()
 
 		total_bigrams += 1
 
-		if prefix not in trimodel:
+		if prefix not in ngram_model:
+			print "Not Found", prefix
 			not_found.add((prefix,correct))
 			continue
 
-		#Defaults to trigram model
-		ngram_model = trimodel
 
 		stanza_start = False
 		if stanza_candidate in STANZA_DATA:
 			stanza_start = True
 			current_stanza = stanza_candidate
-			print prefix
+			print "Start ->", ngram
+
 
 		# Use stanza specific model if available
 		# If start of stanza line, use default model to predict
 		if use_stanzas and current_stanza in stanza_map and not stanza_start:
+			# print current_stanza
 			ngram_model = stanza_map[current_stanza]
-			print ngram_model
-
-		prediction = ngram_model[prefix]
-		# prediction = sorted(prediction, key=lambda item: item[1],reverse=True)
+		
+		prediction = ngram_model.get(prefix)
 
 		# Filter out predictions that match the correct answer
-		filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
+		filtered = []
+		if prediction != None:
+			filtered = list(filter(lambda x: (x[0]==correct), prediction[:NUM_PREDICTIONS]))
 
 		# if len(filtered) == 0:
 		# 	bi_prefix = prefix[-1]
@@ -237,8 +235,12 @@ def score(bimodel, trimodel, ngram_list):
 			correct_predicitons += 1
 			# TODO: Compare with tab completion results
 		else:
-			# print filtered
-			incorrect.add((prefix,correct, tuple(map(lambda (_word,_prob): _word, prediction[:5]))))
+			# print "unable to predict ", ngram
+			# print "using model ->" , ngram_model
+			guess = "Null"
+			if prediction != None:
+				guess = tuple(map(lambda (_word,_prob): _word, prediction[:5]))
+			incorrect.add((prefix,correct, guess))
 		
 	if _debugLong:
 		print "\t Unable to correctly predict: %d" % len(incorrect)
@@ -248,10 +250,13 @@ def score(bimodel, trimodel, ngram_list):
 		print "\t Phrases not present in model: %d" % len(not_found)
 		for (word,correct) in not_found: print "\t\t", word
 
+	# print bimodel.get(('ip',))
+
 	return float(correct_predicitons)/total_bigrams
 
-def create_mapping(model, size):
+def create_mapping(model):
 	assoc_map = {}
+	size = len(model[0][0]) #Size of ngram
 
 	for (ngram, score) in model:
 		prefix = ngram[:size-1]
@@ -335,7 +340,7 @@ def build_stanza_models():
 		bigrams, trigrams = train_ngram(STANZA_DATA[stanza])
 
 		if len(trigrams) > 0:
-			stanza_map[stanza] = create_mapping(trigrams,3)
+			stanza_map[stanza] = create_mapping(trigrams)
 
 	return stanza_map
 
