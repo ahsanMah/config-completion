@@ -39,11 +39,10 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 
 	# dump_ngram_map()
 
-	stanza_map = build_stanza_models()
-	print stanza_map
 
 
-	# results = validate()
+
+	results = validate()
 
 	# results = validate_stanzas()
 
@@ -58,17 +57,22 @@ ordered from highest to lowest score
 def train_ngram(train_set):
 	
 	train_text = train_set
+	bigram_scores = []
+	trigram_scores = []
 
-	#Getting bigrams
-	bi_finder = BigramCollocationFinder.from_words(train_text)
-	tri_finder = TrigramCollocationFinder.from_words(train_text)
-	bi_finder.apply_freq_filter(3)
+	try:
 
-	#Scoring each ngram using likelihood ratios
-	bigram_scores = bi_finder.score_ngrams(BigramAssocMeasures.likelihood_ratio)
-	trigram_scores = tri_finder.score_ngrams(TrigramAssocMeasures.likelihood_ratio)
+		#Getting bigrams
+		bi_finder = BigramCollocationFinder.from_words(train_text)
+		tri_finder = TrigramCollocationFinder.from_words(train_text)
+		bi_finder.apply_freq_filter(3)
 
+		#Scoring each ngram using likelihood ratios
+		bigram_scores = bi_finder.score_ngrams(BigramAssocMeasures.likelihood_ratio)
+		trigram_scores = tri_finder.score_ngrams(TrigramAssocMeasures.likelihood_ratio)
 
+	except Exception as e:
+		print "Insufficient data to build ngram model"
 	# bigram_scores = sorted(bigram_scores, key=lambda item: item[1],reverse=True)
 	# trigram_scores = sorted(trigram_scores, key=lambda item: item[1],reverse=True)
 
@@ -171,33 +175,52 @@ def validate():
 def score(bimodel, trimodel, ngram_list):
 	# for (key,val) in trimodel.items(): print (key,val) 
 
+	stanza_map = build_stanza_models()
+	# print stanza_map
+
+	use_stanzas = True
+
 	total_bigrams = 0 #len(ngram_list)
 	incorrect = set()
 	not_found = set()
 	correct_predicitons = 0
+	current_stanza = ""
 
 	for ngram in ngram_list:
 
 		# Don't predict for end of line
 		if re.match(r'.*\n.+', "".join(ngram)):
-			# print "Skipping ", ngram
+			print "Skipping ", ngram
 			continue
 
 		ngram = tuple(map(lambda x: x.strip(), ngram))
 
 		prefix = ngram[:NGRAM_SIZE-1]
 		correct = ngram[-1]
-
-		if prefix[0].strip() in STANZA_DATA:
-			print prefix
-
+		stanza_candidate = prefix[0].strip()
 
 		total_bigrams += 1
+
 		if prefix not in trimodel:
 			not_found.add((prefix,correct))
 			continue
 
-		prediction = trimodel[prefix]
+		#Defaults to trigram model
+		ngram_model = trimodel
+
+		stanza_start = False
+		if stanza_candidate in STANZA_DATA:
+			stanza_start = True
+			current_stanza = stanza_candidate
+			print prefix
+
+		# Use stanza specific model if available
+		# If start of stanza line, use default model to predict
+		if use_stanzas and current_stanza in stanza_map and not stanza_start:
+			ngram_model = stanza_map[current_stanza]
+			print ngram_model
+
+		prediction = ngram_model[prefix]
 		# prediction = sorted(prediction, key=lambda item: item[1],reverse=True)
 
 		# Filter out predictions that match the correct answer
@@ -291,11 +314,6 @@ def get_stanzas(raw_text, stanza_map = defaultdict(list)):
 
 	return stanza_map
 
-# def validate_stanza():
-
-# 	for stanza in STANZA_DATA:
-
-
 '''
 The NLTK package breaks when all the tokens are the same as it cannot score them
 For trigram model, we need at least two different tokens
@@ -304,16 +322,20 @@ For trigram model, we need at least two different tokens
 	# trigram_scores = tri_finder.score_ngrams(TrigramAssocMeasures.likelihood_ratio)
 	# print trigram_scores
 
+Model is dict mapping from stanza name to ngrams scores for tokens that fall within the given stanza
+Returns empty list if stanza doesn't exist
+
 '''
 
 def build_stanza_models():
 
-	stanza_map = {}
+	stanza_map = defaultdict(list)
 
 	for stanza in STANZA_DATA:
-		print STANZA_DATA[stanza]
 		bigrams, trigrams = train_ngram(STANZA_DATA[stanza])
-		stanza_map[stanza] = create_mapping(trigrams,3)
+
+		if len(trigrams) > 0:
+			stanza_map[stanza] = create_mapping(trigrams,3)
 
 	return stanza_map
 
