@@ -33,6 +33,9 @@ public class Driver {
 
     private static HashMap<Token, ParserRuleContext> contextMap = new HashMap<>();
 
+    private static Vocabulary vocabulary;
+    private static String[] ruleNames;
+
     public static void main (String[] args) {
         String expression =
                 "!\n" +
@@ -122,11 +125,14 @@ public class Driver {
         CodeCompletionCore core = new CodeCompletionCore(parser, null, null);
 
         // 1) At the input start.
-        Vocabulary vocabulary = parser.getVocabulary();
+        vocabulary = parser.getVocabulary();
+        ruleNames = parser.getRuleNames();
 
 
         //Parsing the tree to get tokens and their respective contexes
-        collectCandidates(root, "");
+        System.out.println("***** START COLLECT CANDIDATES");
+        collectCandidates(root, "", root);
+        System.out.println("***** END COLLECT CANDIDATES");
 
         HashMap<Integer,Integer> histogram = new HashMap<>();
         LinkedList<Integer> data = new LinkedList<>();
@@ -168,18 +174,25 @@ public class Driver {
 //            System.out.print(token.getLine() + "," + token.getText() + ",");
 
 
-            CodeCompletionCore.CandidatesCollection candidates =
-                    core.collectCandidates(token.getTokenIndex()+1,contextMap.get(token));
-            System.out.print(token.getText() +":" +contextMap.get(token)+ "-->");
+            ParserRuleContext context = contextMap.get(token);
+            System.out.print(token.getText() + " : ");
+            if (context != null) {
+                CodeCompletionCore.CandidatesCollection candidates =
+                        core.collectCandidates(token.getTokenIndex(),context);
+                String ruleName = ruleNames[context.getRuleIndex()];
+                System.out.print(ruleName + " --> ");
 
-            List<String> tokenCandidates = new LinkedList<String>();
-            for (Integer candidate : candidates.tokens.keySet()) {
-                tokenCandidates.add(vocabulary.getDisplayName(candidate));
+                List<String> tokenCandidates = new LinkedList<String>();
+                for (Integer candidate : candidates.tokens.keySet()) {
+                    tokenCandidates.add(vocabulary.getDisplayName(candidate));
+                }
+    //            Collections.sort(tokenCandidates);
+                System.out.println(tokenCandidates);
+                int count = tokenCandidates.size();
+                data.add(count);
+            } else {
+                System.out.println("SKIP");
             }
-//            Collections.sort(tokenCandidates);
-            System.out.println(tokenCandidates);
-            int count = tokenCandidates.size();
-            data.add(count);
 
         }
 
@@ -223,18 +236,14 @@ public class Driver {
         return ngramMap;
     }
 
-    private static void collectCandidates(ParserRuleContext context, String indent) {
+/*    private static void collectCandidates(ParserRuleContext context, String indent) {
         if (context.getChildCount() > 0) {
 //            System.out.println(indent + context.getRuleIndex());
 
             int terminalChildren = 0;
             for (int i = 0; i < context.getChildCount(); i++) {
                 ParseTree childTree = context.getChild(i);
-                if (childTree instanceof ParserRuleContext) {
-                    ParserRuleContext childContext = 
-                            (ParserRuleContext)childTree;
-                    collectCandidates(childContext, indent + "  ");
-                } else if (childTree instanceof TerminalNodeImpl) {
+                if (childTree instanceof TerminalNodeImpl) {
                     terminalChildren++;
                 }
             }
@@ -242,9 +251,57 @@ public class Driver {
             if (terminalChildren > 0) {
                 Token startToken = context.getStart();
                 Token stopToken = context.getStop();
+                ParserRuleContext parent = context.getParent();
+                Token parentStartToken = null;
+                if (parent != null) {
+                    parentStartToken = parent.getStart();
+                }
                 contextMap.put(startToken, context);
-//                System.out.println(indent + "BASE\t" + context + "\t" + startToken + "\t" + stopToken);
+                boolean allTerminal = (context.getChildCount() == terminalChildren);
+                System.out.println(indent + allTerminal + ", " + context + ", " + startToken + ", " + stopToken);
             }
+
+            for (int i = 0; i < context.getChildCount(); i++) {
+                ParseTree childTree = context.getChild(i);
+                if (childTree instanceof ParserRuleContext) {
+                    ParserRuleContext childContext = 
+                            (ParserRuleContext)childTree;
+                    collectCandidates(childContext, indent + "  ");
+                }
+            }
+
+
+        }
+    } */
+
+    private static void collectCandidates(ParserRuleContext context, String indent, ParserRuleContext lastTerminal) {
+        if (context.getChildCount() > 0) {
+            System.out.println(indent + ruleNames[context.getRuleIndex()]);
+
+            boolean hasTerminal = false;
+            for (int i = 0; i < context.getChildCount(); i++) {
+                ParseTree childTree = context.getChild(i);
+                if (childTree instanceof TerminalNodeImpl) {
+                    hasTerminal = true;
+                    TerminalNodeImpl childTerminal =
+                        (TerminalNodeImpl)childTree;
+                    Token token = childTerminal.symbol;
+                    String literalName = vocabulary.getLiteralName(token.getType());
+                    boolean skip = (literalName == null);
+                    System.out.println(indent + "-" + token + " " + (skip ? "SKIP" : ""));
+                    if (!skip) {
+                        contextMap.put(childTerminal.symbol, lastTerminal);
+                    }
+                } 
+                else if (childTree instanceof ParserRuleContext) {
+                    ParserRuleContext childContext = 
+                            (ParserRuleContext)childTree;
+                    collectCandidates(childContext, indent + "  ", 
+                            (hasTerminal ? context : lastTerminal));
+                }
+            }
+
         }
     }
+
 }
