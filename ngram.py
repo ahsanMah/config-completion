@@ -108,11 +108,12 @@ def getTokens(dirname):
 		# print token_file
 		config_list.append(_dir.replace(".txt",""))
 
-		raw_text = open(token_file).read()
-		train_text = preprocess_data(raw_text)
-		if use_stanzas:
-			get_stanzas(raw_text, stanza_train_data)
-		train_data.append(train_text)
+		with open(token_file) as f:
+			raw_text = f.read()
+			train_text = preprocess_data(raw_text)
+			if use_stanzas:
+				get_stanzas(raw_text, stanza_train_data)
+			train_data.append(train_text)
 	# print config_list
 	return config_list, train_data, stanza_train_data
 
