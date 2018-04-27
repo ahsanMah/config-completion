@@ -13,7 +13,7 @@ from collections import defaultdict
 HEADERS = {"device":"Number of Devices", "samples":"Sample Size", "snapshots":"Snapshot Name"}
 DEFAULT_OUTPUT_FILE = "analysis_results.csv"
 DEFAULT_SNAPSHOT_DIRECTORY = sys.argv[1] + "default"
-DEFAULT_SAMPLE_SIZE = 50
+DEFAULT_SAMPLE_SIZE = 20
 
 def analysis_func(type, idx, value):	
 	func = TYPE_TO_FUNC[type]
@@ -154,6 +154,7 @@ if process_mode == "-hist":
 	exit()
 
 DIRNAMES = ["madison_2011", "umn", "northwestern" ]
+YEARS = ["dump_2011","dump_2012","dump_2013","dump_2014"]
 CORE_EDGE = ["core_only","edge_only"]
 DEVICES = ["devices_10","devices_20","devices_30","devices_40"]
 SAMPLE_SIZES = range(50,300,50)
@@ -162,8 +163,8 @@ REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 process_dict = {
 				"-p": {"input_file": DIRNAME, "parsetype":"samples"},
-				"-s": {"variable":"snapshots", "independent_vars":[input_file]},
-				"-m": {"variable":"snapshots", "independent_vars":CORE_EDGE}
+				"-s": {"variable":"snapshots", "independent_vars":[input_file]}, #single snapshot
+				"-m": {"variable":"snapshots", "independent_vars":YEARS}     #multiple snapshots
 }
 
 proc_args = process_dict[process_mode]

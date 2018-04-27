@@ -16,37 +16,40 @@ NGRAM_SIZE = 0
 NUM_PREDICTIONS = 0
 TRAIN_DATA = []
 STANZA_DATA = {}
+
+use_stanzas = False
 _debug = False
 _debugLong = False
 
 def run(args, sample = 0, ngram = 3, predictions = 3):
 
-	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, STANZA_DATA, _debug, _debugLong
+	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, STANZA_DATA, _debug, _debugLong, use_stanzas
 
 	SAMPLE_NUM = sample
 	NGRAM_SIZE = ngram
 	NUM_PREDICTIONS = predictions	
 	
 	dirname = args[1]
-	_debug = len(args) > 2 and re.match(r'-d.?', args[2])
-	_debugLong = len(args) > 2 and re.match(r'-dL', args[2])
+	# TODO: Use argument parsers
+	if len(args) > 2:
+		option = args[2]
+		use_stanzas = re.match(r'.*s.*', option)
+		_debugLong = re.match(r'.*dL.*', option)
+		_debug = re.match(r'.*d.*', option)
 
 	print "Directory: %s" % dirname
 
 	dirlist, TRAIN_DATA, STANZA_DATA = getTokens(dirname)
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
+	if use_stanzas:
+		print "Using Stanza Model"
 
 	# dump_ngram_map()
 
-
-
-
 	results = validate()
 
-	# results = validate_stanzas()
-
-	# return map(lambda x: list(x), zip(dirlist, results))
+	return map(lambda x: list(x), zip(dirlist, results))
 
 
 
@@ -71,7 +74,9 @@ def train_ngram(train_set):
 		trigram_scores = tri_finder.score_ngrams(TrigramAssocMeasures.likelihood_ratio)
 
 	except Exception as e:
-		print "Insufficient data to build ngram model"
+		print e
+		# print train_set
+		print "Insufficient data to build (stanza) model"
 
 	return bigram_scores, trigram_scores
 
@@ -100,11 +105,13 @@ def getTokens(dirname):
 			continue
 
 		token_file = dirname+"/"+_dir
+		# print token_file
 		config_list.append(_dir.replace(".txt",""))
 
 		raw_text = open(token_file).read()
 		train_text = preprocess_data(raw_text)
-		get_stanzas(raw_text, stanza_train_data)
+		if use_stanzas:
+			get_stanzas(raw_text, stanza_train_data)
 		train_data.append(train_text)
 	# print config_list
 	return config_list, train_data, stanza_train_data
@@ -165,8 +172,6 @@ def score(bimodel, trimodel, ngram_list):
 
 	stanza_map = build_stanza_models()
 	# print stanza_map
-
-	use_stanzas = True
 
 	total_bigrams = 0 #len(ngram_list)
 	incorrect = set()
@@ -238,7 +243,7 @@ def score(bimodel, trimodel, ngram_list):
 			# print "using model ->" , ngram_model
 			guess = "Null"
 			if prediction != None:
-				guess = tuple(map(lambda (_word,_prob): _word, prediction[:5]))
+				guess = tuple(map(lambda (_word,_prob): _word, prediction[:NUM_PREDICTIONS+5]))
 			incorrect.add((prefix,correct, guess))
 		
 	if _debugLong:
@@ -313,7 +318,7 @@ def get_stanzas(raw_text, stanza_map = defaultdict(list)):
 	
 	for stanza in stanza_list:
 		data = preprocess_data(stanza)
-		if len(data)>0:
+		if len(data)>0:#and data[0] in ["router", "interface", "ip", "route-map"]:
 			stanza_map[data[0].strip()] += data[1:]
 
 	return stanza_map
@@ -341,11 +346,12 @@ def build_stanza_models():
 		if len(trigrams) > 0:
 			stanza_map[stanza].append(create_mapping(bigrams))
 			stanza_map[stanza].append(create_mapping(trigrams))
-
+	# print stanza_map
 	return stanza_map
 
 
-run(sys.argv)
+if __name__ == "__main__":
+	run(sys.argv)
 
 
 
