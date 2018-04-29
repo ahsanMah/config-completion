@@ -21,7 +21,7 @@ use_stanzas = False
 _debug = False
 _debugLong = False
 
-def run(args, sample = 0, ngram = 3, predictions = 3):
+def run(args, sample = 0, ngram = 3, predictions = 3, test_dir = None):
 
 	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, STANZA_DATA, _debug, _debugLong, use_stanzas
 
@@ -33,21 +33,26 @@ def run(args, sample = 0, ngram = 3, predictions = 3):
 	# TODO: Use argument parsers
 	if len(args) > 2:
 		option = args[2]
-		use_stanzas = re.match(r'.*s.*', option)
-		_debugLong = re.match(r'.*dL.*', option)
-		_debug = re.match(r'.*d.*', option)
+		use_stanzas = re.match(r'-.*s.*', option)
+		_debugLong = re.match(r'-.*dL.*', option)
+		_debug = re.match(r'-.*d.*', option)
 
 	print "Directory: %s" % dirname
 
 	dirlist, TRAIN_DATA, STANZA_DATA = getTokens(dirname)
+
+	test_data = [] # If test data provided, all of TRAIN_DATA is used to train model
+	if test_dir:
+		test_data = getTokens(test_dir)
+
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
 	if use_stanzas:
 		print "Using Stanza Model"
 
 	# dump_ngram_map()
-
-	results = validate()
+	
+	results = validate(test_data)
 
 	return map(lambda x: list(x), zip(dirlist, results))
 
@@ -117,7 +122,26 @@ def getTokens(dirname):
 	# print config_list
 	return config_list, train_data, stanza_train_data
 
-	#Cross validating
+#Wrapper function to allow to be used with map operator in Pool
+def run_analysis(test_set):
+	return single_analysis(TRAIN_DATA,test_set)
+
+def single_analysis(train_set, test_set):
+	bigram_model, trigram_model = train_ngram(train_set)
+	bimodel = create_mapping(bigram_model)
+	trimodel = create_mapping(trigram_model)
+
+	test_ngram_list = list(bigrams(test_set) if NGRAM_SIZE==2 else trigrams(test_set))
+	
+	#Get accuracy
+	run_score = score(bimodel,trimodel,test_ngram_list)
+	
+	if _debug:
+		print "Score: " + str(run_score)
+
+	return run_score
+
+#Cross validating
 def crossvalidate(train_test):
 	train,test = train_test
 	train_list = TRAIN_DATA
@@ -129,45 +153,40 @@ def crossvalidate(train_test):
 	train_set = []
 	for _idx in train:
 		train_set += train_list[_idx]
-
-	bigram_model, trigram_model = train_ngram(train_set)
-	bimodel = create_mapping(bigram_model)
-	trimodel = create_mapping(trigram_model)
-
-
 	test_set = train_list[test[0]]
-	test_ngram_list = list(bigrams(test_set) if NGRAM_SIZE==2 else trigrams(test_set))
-	
-	#Get accuracy
-	run_score = score(bimodel,trimodel,test_ngram_list)
-	
-	if _debug:
-		print "Score: " + str(run_score)
 
-	return run_score
+	return single_analysis(train_set, test_set)
 
 
-def validate():
+def validate(test_data):
 	
-	split_set = LeaveOneOut().split(TRAIN_DATA)
+	dataset = test_data
+	analysis_func = run_analysis 
+
+	if not test_data:
+		dataset = LeaveOneOut().split(TRAIN_DATA)
+		analysis_func = crossvalidate
+
 	run_score = []
 
 	if not _debug:
 		#Making thread workers
 		pool = multiprocessing.Pool(multiprocessing.cpu_count())
-		run_score = pool.map(crossvalidate, split_set)
+		run_score = pool.map(analysis_func, dataset)
 
 		#Closing threads
 		pool.close()
 		pool.join()
 	else:
-		for train_test in split_set:
-			run_score.append(crossvalidate(train_test))
+		for train_test in dataset:
+			run_score.append(analysis_func(train_test))
 
 	total_score = sum(run_score)
 	total_runs = len(run_score)
 	print "Accuracy: %.4f" % (total_score/total_runs)
 	return run_score
+
+
 
 def score(bimodel, trimodel, ngram_list):
 

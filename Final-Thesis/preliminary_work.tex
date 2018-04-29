@@ -1,4 +1,5 @@
-\section{Preliminary Work}
+\section{Building the Engine}
+
 In this section we detail all the work that has been done on building our model which is the backbone of our engine. We start by describing the intuition behind using Natural Language Processing, then introduce N-gram models as our NLP technique of choice and close by describing how we incorporated that into our completion engine.
 
 \subsection{Token Analysis}
@@ -41,6 +42,8 @@ A likelihood estimator is simply a number that tells us how much more likely one
 N-gram models provided us with a strong foundation on which we could build a specialized completion engine. We developed a program in Python which reads in configuration files and builds a bigram model, using the NLTK package~\cite{nltk}. NLTK also allows us to easily incorporate likelihood ratios as a means of scoring the bigrams. Our script was run on sample configurations from the ARC package~\cite{arc}. These configurations are simple in nature but mimic what deployed network configurations would look like. Each set of configurations emulates a small network employing a different routing policy or design. This allows for a wide breadth of network configuration types to be considered for our model.\\ 
 
 Next, we incorporated some preprocessing steps to clean up the data. Since IP addresses and subnets tend to vary a lot and add noise to the data, we replaced them with placeholders. In Section 4, we consider other approaches to help suggest IP addresses. Additionally, our initial analysis showed that the engine was trying to predict what the user would enter after a complete configuration statement. This greatly affected our accuracies, and thus we altered our model to only suggest tokens that appear on the same line.\\
+
+[MODEL EVALUATION]
 
 To test the accuracy of our model, we perform Leave One Out (LOO) Cross Validation. This form of cross validation involves using one observation as the validation set and the remaining observations as the training set. This is repeated for all combinations of training sets, allowing every observation to act as a validation set. For our analysis an observation is one set of configurations. For example, consider five sets of configurations: A through E. We pick A as the validation set and train the model on all other configurations. Our program will now "walk through" rebuilding configuration A, starting from the first keyword. At every step, we invoke our model and compare our predictions against the actual tokens in A. If the model generates the correct prediction within the top three results, we mark a token completion to be successful.\\
  

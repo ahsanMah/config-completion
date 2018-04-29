@@ -25,6 +25,9 @@ def snapshot_analysis(snapshot_name):
 def sample_analysis(sample_size):
 	return Model.run(["",DEFAULT_SNAPSHOT_DIRECTORY], sample=sample_size)
 
+def train_test_analysis(train_test_dirs):
+	return Model.run(["", ])
+
 def run_analysis(variable, independent_vars, output_file=DEFAULT_OUTPUT_FILE):
 
 	with open(output_file, "w+") as csvfile:
@@ -148,6 +151,7 @@ TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis, "sa
 process_mode = sys.argv[1]
 DIRNAME = sys.argv[2]
 input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
+test_dir = sys.argv[4] if len(sys.argv) > 4 else None
 
 if process_mode == "-hist":
 	make_histogram(DIRNAME)
@@ -165,6 +169,7 @@ process_dict = {
 				"-p": {"input_file": DIRNAME, "parsetype":"samples"},
 				"-s": {"variable":"snapshots", "independent_vars":[input_file]}, #single snapshot
 				"-m": {"variable":"snapshots", "independent_vars":YEARS}     #multiple snapshots
+				"-t": {"variable":"train_test", "independent_vars":[input_file, test_dir]} #Train/Test on specified configs
 }
 
 proc_args = process_dict[process_mode]
