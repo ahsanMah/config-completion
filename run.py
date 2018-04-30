@@ -10,7 +10,7 @@ from time import time
 from collections import defaultdict
 
 
-HEADERS = {"device":"Number of Devices", "samples":"Sample Size", "snapshots":"Snapshot Name"}
+HEADERS = {"device":"Number of Devices", "samples":"Sample Size", "snapshots":"Snapshot Name", "train_test":"Test Directory"}
 DEFAULT_OUTPUT_FILE = "analysis_results.csv"
 DEFAULT_SNAPSHOT_DIRECTORY = sys.argv[1] + "default"
 DEFAULT_SAMPLE_SIZE = 20
@@ -25,8 +25,11 @@ def snapshot_analysis(snapshot_name):
 def sample_analysis(sample_size):
 	return Model.run(["",DEFAULT_SNAPSHOT_DIRECTORY], sample=sample_size)
 
-def train_test_analysis(train_test_dirs):
-	return Model.run(["", ])
+def train_test_analysis(test_dir):
+	train_dir = DIRNAME+INPUT_FILE
+	test_dir = DIRNAME+test_dir
+	print "Testing Directory: " + test_dir 
+	return Model.run(["", train_dir], test_dir = test_dir)
 
 def run_analysis(variable, independent_vars, output_file=DEFAULT_OUTPUT_FILE):
 
@@ -35,6 +38,7 @@ def run_analysis(variable, independent_vars, output_file=DEFAULT_OUTPUT_FILE):
 		writer.writerow([HEADERS[variable], "Timestamp", "Accuracy"])
 
 		for idx, value in enumerate(independent_vars):
+			print value
 			start_time = time()
 
 			results = analysis_func(variable, idx, value)
@@ -146,17 +150,18 @@ def make_histogram(input_file):
 
 
 
-TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis, "samples": sample_analysis}
 
 process_mode = sys.argv[1]
 DIRNAME = sys.argv[2]
-input_file = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
-test_dir = sys.argv[4] if len(sys.argv) > 4 else None
+INPUT_FILE = sys.argv[3] if len(sys.argv) > 3 else "analysis_results.csv"
+TEST_DIR = sys.argv[4] if len(sys.argv) > 4 else None
 
 if process_mode == "-hist":
 	make_histogram(DIRNAME)
 	exit()
 
+TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis,
+				"samples": sample_analysis, "train_test": train_test_analysis}
 DIRNAMES = ["madison_2011", "umn", "northwestern" ]
 YEARS = ["dump_2011","dump_2012","dump_2013","dump_2014"]
 CORE_EDGE = ["core_only","edge_only"]
@@ -167,9 +172,9 @@ REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 process_dict = {
 				"-p": {"input_file": DIRNAME, "parsetype":"samples"},
-				"-s": {"variable":"snapshots", "independent_vars":[input_file]}, #single snapshot
-				"-m": {"variable":"snapshots", "independent_vars":YEARS}     #multiple snapshots
-				"-t": {"variable":"train_test", "independent_vars":[input_file, test_dir]} #Train/Test on specified configs
+				"-s": {"variable":"snapshots", "independent_vars":[INPUT_FILE]}, #single snapshot
+				"-m": {"variable":"snapshots", "independent_vars":YEARS},     #multiple snapshots
+				"-t": {"variable":"train_test", "independent_vars":[TEST_DIR]} #Train + Test on specified configs
 }
 
 proc_args = process_dict[process_mode]

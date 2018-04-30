@@ -15,6 +15,7 @@ SAMPLE_NUM = 0
 NGRAM_SIZE = 0
 NUM_PREDICTIONS = 0
 TRAIN_DATA = []
+TRAIN_SET = []
 STANZA_DATA = {}
 
 use_stanzas = False
@@ -23,7 +24,7 @@ _debugLong = False
 
 def run(args, sample = 0, ngram = 3, predictions = 3, test_dir = None):
 
-	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, STANZA_DATA, _debug, _debugLong, use_stanzas
+	global SAMPLE_NUM, NGRAM_SIZE, NUM_PREDICTIONS, TRAIN_DATA, TRAIN_SET, STANZA_DATA, _debug, _debugLong, use_stanzas
 
 	SAMPLE_NUM = sample
 	NGRAM_SIZE = ngram
@@ -31,11 +32,11 @@ def run(args, sample = 0, ngram = 3, predictions = 3, test_dir = None):
 	
 	dirname = args[1]
 	# TODO: Use argument parsers
-	if len(args) > 2:
-		option = args[2]
-		use_stanzas = re.match(r'-.*s.*', option)
-		_debugLong = re.match(r'-.*dL.*', option)
-		_debug = re.match(r'-.*d.*', option)
+	# if len(args) > 2:
+	# 	option = args[2]
+	# 	use_stanzas = re.match(r'-.*s.*', option)
+	# 	_debugLong = re.match(r'-.*dL.*', option)
+	# 	_debug = re.match(r'-.*d.*', option)
 
 	print "Directory: %s" % dirname
 
@@ -43,7 +44,9 @@ def run(args, sample = 0, ngram = 3, predictions = 3, test_dir = None):
 
 	test_data = [] # If test data provided, all of TRAIN_DATA is used to train model
 	if test_dir:
-		test_data = getTokens(test_dir)
+		dirlist, test_data, _ = getTokens(test_dir)
+		for data in TRAIN_DATA:
+			TRAIN_SET += data
 
 	print "Sample size: %d" % len(TRAIN_DATA)
 	print "Ngram size: %d" % NGRAM_SIZE
@@ -51,7 +54,7 @@ def run(args, sample = 0, ngram = 3, predictions = 3, test_dir = None):
 		print "Using Stanza Model"
 
 	# dump_ngram_map()
-	
+
 	results = validate(test_data)
 
 	return map(lambda x: list(x), zip(dirlist, results))
@@ -123,8 +126,9 @@ def getTokens(dirname):
 	return config_list, train_data, stanza_train_data
 
 #Wrapper function to allow to be used with map operator in Pool
+#FIXME: Builds ngram every time
 def run_analysis(test_set):
-	return single_analysis(TRAIN_DATA,test_set)
+	return single_analysis(TRAIN_SET,test_set)
 
 def single_analysis(train_set, test_set):
 	bigram_model, trigram_model = train_ngram(train_set)
