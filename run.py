@@ -162,7 +162,7 @@ if process_mode == "-hist":
 
 TYPE_TO_FUNC = {"device": snapshot_analysis, "snapshots": snapshot_analysis,
 				"samples": sample_analysis, "train_test": train_test_analysis}
-DIRNAMES = ["madison_2011", "umn", "northwestern" ]
+DIRNAMES = ["madison_monthly", "umn", "northwestern", "colgate_dump" ]
 YEARS = ["dump_2011","dump_2012","dump_2013","dump_2014"]
 CORE_EDGE = ["core_only","edge_only"]
 DEVICES = ["devices_10","devices_20","devices_30","devices_40"]
