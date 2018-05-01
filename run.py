@@ -74,7 +74,7 @@ def plotdata(plottype, data, labels):
 	plotfunc(**pltparams)
 
 def process(input_file, parsetype="samples", plottype="boxplot"):
-	parsers = {"samples": [int, str, float], "snapshots": [str, str, float], "replacements": [str, str, float], "devices": [int, str, float]}
+	parsers = {"samples": [int, str, float], "snapshots": [str, str, float], "replacements": [str, str, float], "devices": [int, str, float],"roles": [str, str, float]}
 
 	xlabels = {
 				"devices":
@@ -85,6 +85,8 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 			  
 		  		"snapshots":
 				{"xlabel":"University Name", "Title":"Prediction Accuracies for Different Universities"},
+				"roles":
+				{"xlabel":"Role Type", "Title":"Prediction Accuracies for Different Roles"},
 
 				"samples":
 					{"xlabel":"Sample Size", "Title":"Effect of Selecting More Samples in Time"}
@@ -103,13 +105,12 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	print keys
 	data = [rawdata[independent_var] for independent_var in keys]
 	labels = [x for x in range(0,len(keys))] if parsetype == "replacements" else [str(label) for label in keys]
-	# labels = ["A","B","C","D"]
+	# labels = ["A","B","C"]
 	# labels = ["Core","Edge"]
 	# labels = ["Default", "Subnet Masks", "IP Address", "Interface Names", "Descriptions"]
 	print labels
 	# print data
 	fig, ax = plt.subplots(figsize=(7,5))
-
 	plotdata(plottype, data, labels)
 
 	# plt.bar(labels,np.mean(data,axis=1))
@@ -123,6 +124,12 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	ax.set_title(xlabels[parsetype]["Title"], fontsize=15)
 	ax.set_xlabel(xlabels[parsetype]["xlabel"],fontsize=11)
 	ax.set_ylabel(ylabel="Prediction Accuracy",fontsize=11)
+
+	# print [np.average(x) for x in data]
+	# z = np.polyfit(keys,[np.average(x) for x in data], 1)
+	# p = np.poly1d(z)
+	# plt.plot([-5*x for x in keys],p(keys),"r-")
+
 	# plt.ylim((0.8,1))
 	# plt.savefig("Poster/uni_analysis.png")
 	plt.show()
@@ -173,7 +180,7 @@ REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 
 process_dict = {
-				"-p": {"input_file": DIRNAME, "parsetype":"snapshots"},
+				"-p": {"input_file": DIRNAME, "parsetype":"devices"},
 				"-s": {"variable":"snapshots", "independent_vars":[INPUT_FILE]}, #single snapshot
 				"-m": {"variable":"snapshots", "independent_vars":YEARS},     #multiple snapshots
 				"-t": {"variable":"train_test", "independent_vars":[TEST_DIR]} #Train + Test on specified configs
