@@ -103,12 +103,12 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	print keys
 	data = [rawdata[independent_var] for independent_var in keys]
 	labels = [x for x in range(0,len(keys))] if parsetype == "replacements" else [str(label) for label in keys]
-	# labels = ["A","B","C"]
+	# labels = ["A","B","C","D"]
 	# labels = ["Core","Edge"]
 	# labels = ["Default", "Subnet Masks", "IP Address", "Interface Names", "Descriptions"]
 	print labels
 	# print data
-	fig, ax = plt.subplots(figsize=(5,4))
+	fig, ax = plt.subplots(figsize=(7,5))
 
 	plotdata(plottype, data, labels)
 
@@ -118,9 +118,11 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	orange_line = mlines.Line2D([], [], color='orange',label='Median')
 	green_marker = mlines.Line2D([], [], color='green', marker="*",ls="None", label='Outlier')
 
-	legend = ax.legend(loc='lower right', fontsize="small", shadow=True, handles=[green_line, orange_line, green_marker])
+	legend = ax.legend(loc='lower right', fontsize="medium", shadow=True, handles=[green_line, orange_line, green_marker])
 
-	ax.set(ylabel="Prediction Accuracy", xlabel = xlabels[parsetype]["xlabel"], title = xlabels[parsetype]["Title"])
+	ax.set_title(xlabels[parsetype]["Title"], fontsize=15)
+	ax.set_xlabel(xlabels[parsetype]["xlabel"],fontsize=11)
+	ax.set_ylabel(ylabel="Prediction Accuracy",fontsize=11)
 	# plt.ylim((0.8,1))
 	# plt.savefig("Poster/uni_analysis.png")
 	plt.show()
@@ -171,7 +173,7 @@ REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 
 process_dict = {
-				"-p": {"input_file": DIRNAME, "parsetype":"samples"},
+				"-p": {"input_file": DIRNAME, "parsetype":"snapshots"},
 				"-s": {"variable":"snapshots", "independent_vars":[INPUT_FILE]}, #single snapshot
 				"-m": {"variable":"snapshots", "independent_vars":YEARS},     #multiple snapshots
 				"-t": {"variable":"train_test", "independent_vars":[TEST_DIR]} #Train + Test on specified configs
