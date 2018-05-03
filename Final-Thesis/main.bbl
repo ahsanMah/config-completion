@@ -98,12 +98,6 @@ Y.~Sverdlik.
 \newblock Microsoft: misconfigured network device led to azure outage.
 \newblock \url{https://goo.gl/Y5sDov}.
 
-\bibitem{googlebgp}
-Web.
-\newblock Google made a tiny error and it broke half the internet in japan.
-\newblock
-  \url{https://thenextweb.com/google/2017/08/28/google-japan-internet-blackout/}.
-
 \bibitem{errors}
 Z.~Yin, X.~Ma, J.~Zheng, Y.~Zhou, L.~N. Bairavasundaram, and S.~Pasupathy.
 \newblock An empirical study on configuration errors in commercial and open
