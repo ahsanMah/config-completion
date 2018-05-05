@@ -104,4 +104,11 @@ Z.~Yin, X.~Ma, J.~Zheng, Y.~Zhou, L.~N. Bairavasundaram, and S.~Pasupathy.
   source systems.
 \newblock pages 159--172, 2011.
 
+\bibitem{Zeng}
+H.~Zeng, P.~Kazemian, G.~Varghese, and N.~McKeown.
+\newblock Automatic test packet generation.
+\newblock In {\em Proceedings of the 8th International Conference on Emerging
+  Networking Experiments and Technologies}, CoNEXT '12, pages 241--252, New
+  York, NY, USA, 2012. ACM.
+
 \end{thebibliography}
