@@ -5,6 +5,13 @@ T.~Benson, A.~Akella, and D.~Maltz.
 \newblock Unraveling the complexity of network management.
 \newblock pages 335--348, 2009.
 
+\bibitem{Benson}
+T.~Benson, A.~Akella, and A.~Shaikh.
+\newblock Demystifying configuration challenges and trade-offs in network-based
+  isp services.
+\newblock In {\em Proceedings of the ACM SIGCOMM 2011 Conference}, SIGCOMM '11,
+  pages 302--313, New York, NY, USA, 2011. ACM.
+
 \bibitem{bruch}
 M.~Bruch, M.~Monperrus, and M.~Mezini.
 \newblock Learning from examples to improve code completion systems.
@@ -63,6 +70,13 @@ G.~E. Kaiser and P.~H. Feiler.
 \newblock In {\em Proceedings of the 9th International Conference on Software
   Engineering}, ICSE '87, pages 180--188, Los Alamitos, CA, USA, 1987. IEEE
   Computer Society Press.
+
+\bibitem{Kim}
+H.~Kim, T.~Benson, A.~Akella, and N.~Feamster.
+\newblock The evolution of network configuration: A tale of two campuses.
+\newblock In {\em Proceedings of the 2011 ACM SIGCOMM Conference on Internet
+  Measurement Conference}, IMC '11, pages 499--514, New York, NY, USA, 2011.
+  ACM.
 
 \bibitem{manning}
 C.~D. Manning and H.~Sch\"{u}tze.
