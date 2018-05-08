@@ -78,7 +78,7 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 
 	xlabels = {
 				"devices":
-					{"xlabel":"Number of Device Configurations", "Title":"Effect of Training Devices on Prediction"},
+					{"xlabel":"Number of Devices", "Title":"Effect of Training Devices on Prediction"},
 
 				"replacements":
 			  		{"xlabel":"Incremental Replacements", "Title":"Effect of Placeholders on Prediction"},
@@ -89,7 +89,7 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 				{"xlabel":"Role Type", "Title":"Prediction Accuracies for Different Roles"},
 
 				"samples":
-					{"xlabel":"Sample Size", "Title":"Effect of Selecting More Samples in Time"}
+					{"xlabel":"Number of Months", "Title":"Effect of Training on Longer Configuration Histories"}
 
 			  }
 
@@ -102,15 +102,16 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 			rawdata[parsed_vals[0]].append(parsed_vals[2])
 
 	keys = sorted(rawdata.keys())
+	keys = rawdata.keys()
 	print keys
 	data = [rawdata[independent_var] for independent_var in keys]
 	labels = [x for x in range(0,len(keys))] if parsetype == "replacements" else [str(label) for label in keys]
 	# labels = ["A","B","C"]
-	# labels = ["Core","Edge"]
+	labels = ["Combined","Edge","Core"]
 	# labels = ["Default", "Subnet Masks", "IP Address", "Interface Names", "Descriptions"]
 	print labels
 	# print data
-	fig, ax = plt.subplots(figsize=(7,5))
+	fig, ax = plt.subplots(figsize=(8,6))
 	plotdata(plottype, data, labels)
 
 	# plt.bar(labels,np.mean(data,axis=1))
@@ -130,7 +131,7 @@ def process(input_file, parsetype="samples", plottype="boxplot"):
 	# p = np.poly1d(z)
 	# plt.plot([-5*x for x in keys],p(keys),"r-")
 
-	# plt.ylim((0.8,1))
+	plt.ylim((0.7,1	))
 	# plt.savefig("Poster/uni_analysis.png")
 	plt.show()
 
@@ -180,7 +181,7 @@ REPLACEMENTS = ["replacement_" + str(x) for x in range(1,2)]
 
 
 process_dict = {
-				"-p": {"input_file": DIRNAME, "parsetype":"devices"},
+				"-p": {"input_file": DIRNAME, "parsetype":"roles"},
 				"-s": {"variable":"snapshots", "independent_vars":[INPUT_FILE]}, #single snapshot
 				"-m": {"variable":"snapshots", "independent_vars":YEARS},     #multiple snapshots
 				"-t": {"variable":"train_test", "independent_vars":[TEST_DIR]} #Train + Test on specified configs
