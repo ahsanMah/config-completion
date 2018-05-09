@@ -6,45 +6,45 @@ Database file #1: refs.bib
 Warning--empty journal in complexity
 Warning--empty booktitle in arc
 Warning--empty journal in errors
-You've used 22 entries,
+You've used 24 entries,
             2118 wiz_defined-function locations,
-            633 strings with 7471 characters,
-and the built_in function-call counts, 8166 in all, are:
-= -- 824
-> -- 384
-< -- 9
-+ -- 157
-- -- 130
-* -- 515
-:= -- 1290
-add.period$ -- 70
-call.type$ -- 22
-change.case$ -- 127
+            648 strings with 7947 characters,
+and the built_in function-call counts, 9253 in all, are:
+= -- 941
+> -- 435
+< -- 11
++ -- 177
+- -- 148
+* -- 590
+:= -- 1451
+add.period$ -- 78
+call.type$ -- 24
+change.case$ -- 142
 chr.to.int$ -- 0
-cite$ -- 25
-duplicate$ -- 318
-empty$ -- 636
-format.name$ -- 130
-if$ -- 1777
+cite$ -- 27
+duplicate$ -- 364
+empty$ -- 714
+format.name$ -- 148
+if$ -- 2023
 int.to.chr$ -- 0
-int.to.str$ -- 22
-missing$ -- 16
-newline$ -- 110
-num.names$ -- 44
-pop$ -- 168
+int.to.str$ -- 24
+missing$ -- 18
+newline$ -- 120
+num.names$ -- 48
+pop$ -- 185
 preamble$ -- 1
-purify$ -- 109
+purify$ -- 122
 quote$ -- 0
-skip$ -- 270
+skip$ -- 307
 stack$ -- 0
-substring$ -- 472
-swap$ -- 101
-text.length$ -- 9
+substring$ -- 546
+swap$ -- 121
+text.length$ -- 11
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 86
+type$ -- 94
 warning$ -- 3
-while$ -- 77
-width$ -- 24
-write$ -- 240
+while$ -- 87
+width$ -- 26
+write$ -- 267
 (There were 3 warnings)

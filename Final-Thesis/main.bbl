@@ -31,6 +31,14 @@ Eclipse.
 \newblock Eclipse oxygen.
 \newblock \url{https://www.eclipse.org/}.
 
+\bibitem{NetComplete}
+A.~El-Hassany, P.~Tsankov, L.~Vanbever, and M.~Vechev.
+\newblock Netcomplete: Practical network-wide configuration synthesis with
+  autocompletion.
+\newblock In {\em 15th {USENIX} Symposium on Networked Systems Design and
+  Implementation ({NSDI} 18)}, pages 579--594, Renton, WA, 2018. {USENIX}
+  Association.
+
 \bibitem{synet}
 A.~El{-}Hassany, P.~Tsankov, L.~Vanbever, and M.~T. Vechev.
 \newblock Network-wide configuration synthesis.
@@ -48,6 +56,12 @@ A.~Fogel, S.~Fung, L.~Pedrosa, M.~Walraed-Sullivan, R.~Govindan, R.~Mahajan,
 A.~Gember-Jacobson, R.~Viswanathan, A.~Akella, and R.~Mahajan.
 \newblock Fast control plane analysis using an abstract representation.
 \newblock August 2016.
+
+\bibitem{Gember}
+A.~Gember-Jacobson, W.~Wu, X.~Li, A.~Akella, and R.~Mahajan.
+\newblock Management plane analytics.
+\newblock In {\em Proceedings of the 2015 Internet Measurement Conference}, IMC
+  '15, pages 395--408, New York, NY, USA, 2015. ACM.
 
 \bibitem{naturalness}
 A.~Hindle, E.~T. Barr, M.~Gabel, Z.~Su, and P.~T. Devanbu.
