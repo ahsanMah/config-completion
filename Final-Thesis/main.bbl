@@ -92,6 +92,12 @@ H.~Kim, T.~Benson, A.~Akella, and N.~Feamster.
   Measurement Conference}, IMC '11, pages 499--514, New York, NY, USA, 2011.
   ACM.
 
+\bibitem{Lee}
+F.~Le, S.~Lee, T.~Wong, H.~S. Kim, and D.~Newcomb.
+\newblock Detecting network-wide and router-specific misconfigurations through
+  data mining.
+\newblock {\em IEEE/ACM Trans. Netw.}, 17(1):66--79, Feb. 2009.
+
 \bibitem{manning}
 C.~D. Manning and H.~Sch\"{u}tze.
 \newblock {\em Foundations of Statistical Natural Language Processing}.
