@@ -1,8 +1,12 @@
-\section{Building the Engine}
+\documentclass[../thesis.tex]{subfiles}
+\begin{document}
+
+\chapter{Preliminaries}
+\label{ch:prelim}
 
 In this section we detail all the work that has been done on building our model which is the backbone of our engine. We start by describing the intuition behind using Natural Language Processing, then introduce N-gram models as our NLP technique of choice and close by describing how we incorporated that into our completion engine.
 
-\subsection{Token Analysis}
+\section{Token Analysis}
 Prior research in computer networking hints that we should expect network configurations to share a common set of stanzas and thus implicitly tokens~\cite{Benson}. As Hindle,\textit{et al.} 2012~\cite{naturalness} pointed out, regularities in bodies of texts can be easily exploited by NLP techniques. We hope to find and use such regularities in network configurations to generate suggestions.\\
 
 In~\cite{complexity} researchers identified a few key design decisions commonly made by network operators. Network configurations are designed to be homogeneous as a means of easy maintenance, where some operators start off with common configuration templates with varying parameters. They may then tweak these templates to achieve specialized routing roles if needed. Thus one can posit that configurations across devices in a given network may share a lot of the same tokens, subnets and sometimes even complete stanzas (such as Access Control Lists). To confirm our hypothesis, we took configurations from a large university (University A as described in Section 4) network and split up each configuration file into a list of tokens. Tokens included all keywords and subnets with punctuation and newline characters stripped off. For every file we then plotted the percentage of tokens and statements that exist in other router configuration files.\\
@@ -15,7 +19,7 @@ Our results show that most of each file could be rebuilt from existing statement
 	\caption{The plot shows how many tokens and statements a router configuration holds in common with the rest of the network. The data was taken from a large research university.}
 \end{figure}
 
-\subsection{N-gram Models}
+\section{N-gram Models}
 
 Given that token regularities existed in network configurations, we employ NLP techniques to make use of token histories. As mentioned in Section 2.2, we use N-gram models as a basis of our engine. Here we briefly describe the theory behind these models. Consider a sequence of tokens in a body of text (in our case, network configurations). We can statistically model how likely tokens are to follow other tokens. We accomplish this by calculating the conditional probabilities of certain tokens appearing in the text. Given a sequence of tokens $a_1,a_2,a_3,...,a_n$, we can calculate the probability of $a_2$ occurring given that $a_1$ has already occurred i-e $p(a_2 | a_1)$. We continue by calculating the probability of $a_3$ given $a_2$, and so on. Since we looked at two tokens at a time, this is called a bigram model. More generally, predicting how likely a token is to show up based on the previous $n-1$ tokens is called an N-gram model. In our work, we used bigram and trigram models. Any higher number of N-grams would have required a larger data set to train.\\
 
@@ -44,12 +48,11 @@ $p_2=\frac{c_2-c_{12}}{N-c_1}$
 
 A likelihood ratio would thus be the ratio of $L(H_1)$ and $L(H_2)$.
 
-\subsection{Placeholders}
+\section{Placeholders}
 We next add a networking specific optimization by incorporating some preprocessing steps to substitute certain parameters with generic tokens. For example, since IP addresses and subnets tend to vary a lot and add noise to the data, we replaced them with placeholders. Having these generic tokens in lieu of parameters helps the engine suggest places where parameters may be entered without trying to predict exact values, which is extremely difficult given our pure NLP approach. In Section 6, we consider other approaches to help suggest parameters such as IP addresses. In Section 5, we also look at the effect of every individual placeholder on the accuracies. We should also note that our initial analysis showed that the engine was trying to predict what the user would enter after a complete configuration statement. We observed that there was little correlation between the end token of a line and the starting token of the next line. We thus altered our model to only suggest tokens that appear on the same line.\\
 
-\subsection{Implementation}
+\section{Implementation}
 
 N-gram models provided us with a strong foundation on which we could build a specialized completion engine. We developed a program in Python which reads in configuration files and builds a trigram model, using the NLTK package~\cite{nltk}. NLTK also allows us to easily incorporate likelihood ratios as a means of scoring the N-grams. We wrote additional scripts to perform analyses and generate graphs. For our analyses, all individual tests were run in parallel to cut down on runtime. Our scripts were run on a 22-Core Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz server with 128 GB of RAM running Ubuntu 16.04.4 LTS.\\ 
 
-
-
+\end{document}
