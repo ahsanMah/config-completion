@@ -1,4 +1,4 @@
-TARGETS = main
+TARGETS = thesis
 
 TEXFILES = $(wildcard *.tex) $(wildcard tables/*.tex) $(wildcard *.cls) $(wildcard figures/*.pdf) $(wildcard *.bib)
 PDFS = $(addsuffix .pdf,$(TARGETS))
