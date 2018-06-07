@@ -1,6 +1,6 @@
 TARGETS = thesis
 
-TEXFILES = $(wildcard *.tex) $(wildcard tables/*.tex) $(wildcard *.cls) $(wildcard figures/*.pdf) $(wildcard *.bib)
+TEXFILES = $(wildcard *.tex) $(wildcard section/*.tex) $(wildcard *.cls) $(wildcard *.bib)
 PDFS = $(addsuffix .pdf,$(TARGETS))
 
 all: $(PDFS)
