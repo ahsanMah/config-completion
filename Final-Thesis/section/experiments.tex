@@ -27,8 +27,7 @@ We applied our framework to Cisco configurations of core, border, and distributi
     \small \centering
     \begin{tabular}{ | c | c | c | c |}
     \hline
-        {\bf Univ.} & {\bf No. of Configs} & {\bf Total Lines} & {\bf Avg
-    Lines} \\ 
+        \textbf{Univ.} & \textbf{No. of Configs} & \textbf{Total Lines} & \textbf{Avg Lines} \\ 
     \hline
     A & 35 & 73K & 2.1K \\ 
     B & 26 & 61K & 2.3K \\ 
@@ -43,7 +42,7 @@ We applied our framework to Cisco configurations of core, border, and distributi
 
 \section{Testing Methodology}
 
-To test the accuracy of our model, we perform Leave One Out (LOO) Cross Validation. This form of cross validation involves using one observation as the validation set and the remaining observations as the training set. This is repeated for all combinations of training sets, allowing every observation to act as a validation set. For our analyses an observation could be one set of configurations or just one device configuration depending on the test. For example, for our analyses on length of histories, a validation set is comprised of all device configurations for a given month whereas for an analysis on the number of devices, the validation set is the configuration of one routing device.\\
+To test the accuracy of our model, we perform Leave One Out (LOO) Cross Validation. This form of cross validation involves using one observation as the validation set and the remaining observations as the training set. This is repeated for all combinations of training sets, allowing every observation to act as a validation set. For our analyses an observation could be one set of configurations or just one device configuration depending on the test. For example, for our analyses on length of histories, a validation set is comprised of all device configurations for a given month whereas for an analysis on the number of devices, the validation set is the configuration of one routing device.\\
 
 For a single test, we "walk through" rebuilding the validation set token-by-token, starting from the first keyword. For every line we do not predict the first token but invoke the model for every subsequent token. Figure 5.2 shows us what this test conceptually looks like. On the left handside we have a configuration that is being built using the model and on the right the complete original configuration. Consider the line pointed to by the red arrow. We assume that the first keyword ("ip") is given to us. We then use the model to generate three suggestions
 \footnote{The code completion papers we read considered a prediction to be correct if it appeared within the top three to five suggestions. Accurately predicting the correct token within one suggestion every time can be extremely difficult for any code completion system, which is why developers give themselves some leeway when assessing a model's accuracy.}
